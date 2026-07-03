@@ -89,8 +89,8 @@ Two pipeline stages (Normalize and Ingest Bronze) are scaffolded but **currently
 |---|---|---|
 | Nextflow | 24.04.0 | DSL2 enabled |
 | Java | 17+ | Required by Nextflow |
+| [uv](https://docs.astral.sh/uv/) | — | Python package manager  |
 | Python | 3.12 | Runtime for all `bin/` scripts |
-| [uv](https://docs.astral.sh/uv/) | — | Python package manager (used in shebangs) |
 
 Python dependencies are declared inline via `uv` shebangs and are resolved automatically at runtime:
 
