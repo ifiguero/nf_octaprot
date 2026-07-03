@@ -301,30 +301,6 @@ process {
 }
 ```
 
-### `nextflow-not.config`
-
-An alternative configuration file that adds explicit `publishDir` directives per process. Use it by copying it over `nextflow.config` or by passing `-c nextflow-not.config`:
-
-```bash
-nextflow run main.nf -c nextflow-not.config
-```
-
-### Resource defaults (`conf/resources.config`)
-
-| Process name | CPUs | Memory | Time |
-|---|---|---|---|
-| `REPOSITORY_TO_PARQUET` | 1 | 2 GB | 2 h |
-| `REPOSITORY_FILES_EXTRACT` | 1 | 4 GB | 12 h |
-| `REPOSITORY_SUMMARY` | 1 | 1 GB | 30 m |
-| `REPLICATES_TO_PARQUET` | — | — | — |
-| `BATCH_SPLIT_STRATIFIED` | 1 | 2 GB | 1 h |
-| `DATASET_MANIFEST_TO_PARQUET` | 1 | 2 GB | 2 h |
-| `DOWNLOAD_TRANSCODE_PUBLISH` | 1 | 8 GB | 48 h |
-| `INGEST_BRONZE_METADATA` | 1 | 16 GB | 24 h |
-| `PARQUET_TO_SQL_DUMP` | 1 | 4 GB | 4 h |
-| `DUMP_BREAKDOWN` | — | — | — |
-
----
 
 ## Troubleshooting
 
@@ -344,6 +320,5 @@ nextflow run main.nf -c nextflow-not.config
 - All Python scripts use the `#!/usr/bin/env -S uv run --with ... python3.12` shebang — dependencies are fetched automatically.
 - The project uses **Nextflow DSL2** with workflows imported in `main.nf`.
 - The `lib/silver_model.py` file is the single source of truth for Parquet schema definitions.
-- The `modules/` directory contains **empty placeholder files** — processes are defined inline within the workflow files in `workflows/`.
 - Stages 03 and 04 are scaffolded but not yet implemented. The scripts `031_batch_work_load.py`, `032_download_transcode_bronze.py`, and `041_ingest_bronze.py` are empty stubs.
-- When adding a new process, follow the existing pattern: define the process inside the relevant `workflows/*.nf` file, write a Python script in `bin/`, and add resource defaults in `conf/resources.config`.
+- When adding a new process, follow the existing pattern: define the process inside the relevant `workflows/*.nf` file, write a Python script in `bin/`.
