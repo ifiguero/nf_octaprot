@@ -1,1 +1,4 @@
 .git/
+modules/**
+docs/**
+assets/raw
