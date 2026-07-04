@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --with polars --with ftputil python3.12
+#!/usr/bin/env -S uv run --with polars --with ftputil python3
 
 from __future__ import annotations
 from dataclasses import dataclass
