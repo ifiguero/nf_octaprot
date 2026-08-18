@@ -39,18 +39,15 @@ process LIST_REPLICATES {
 }
 
 process DOWNLOAD_TRANSCODE_PUBLISH {
-    publishDir "${params.bronze_dir}", mode: 'move', overwrite: true
+    storeDir "${params.bronze_dir}"
     maxForks 1
-    cpus = 8
-    memory = '32 GB'
+    cpus 8
+    memory '32 GB'
 
     container 'ilabusm/nf_octaprot_transcode'
 
     input:
     val replicate_id
-
-    when:
-    !file("${params.bronze_dir}/${replicate_id}.mzML.gz", checkIfExists: true)
 
     output:
     path "${replicate_id}.mzML.gz"
