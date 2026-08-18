@@ -146,7 +146,7 @@ def main() -> int:
             schema=schema,
         )
 
-        parquet_df.write_parquet(f"repo_{repository_id}.parquet")
+        parquet_df.write_parquet(f"{repository_id}.parquet")
 
     return 0
 

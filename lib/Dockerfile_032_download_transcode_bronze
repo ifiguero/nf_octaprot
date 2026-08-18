@@ -1,0 +1,20 @@
+# official uv binary from Astral's image
+FROM ghcr.io/astral-sh/uv:latest AS uv_source
+
+# Base proteowizard
+FROM proteowizard/pwiz-skyline-i-agree-to-the-vendor-licenses:latest
+
+# Switch to root user to install software
+USER root
+
+# Install compression tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gzip \
+    unzip \
+    p7zip-full \
+    xz-utils \
+    bzip2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the pre-compiled uv binaries directly
+COPY --from=uv_source /uv /uvx /usr/local/bin/

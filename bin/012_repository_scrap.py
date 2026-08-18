@@ -168,10 +168,10 @@ def scan_repository(ftp_url: str) -> list[dict]:
             return files_list
 
         except Exception as exc:
-            import sys, traceback
+#            import sys, traceback
             last_exception = exc
             logger.warning(f"FTP attempt {attempt + 1}/{MAX_RETRIES} failed: {exc}")
-            traceback.print_exc(file=sys.stdout)
+#            traceback.print_exc(file=sys.stdout)
             time.sleep(sleep_time)
             sleep_time *= 2
 

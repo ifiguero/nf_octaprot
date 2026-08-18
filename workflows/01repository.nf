@@ -1,18 +1,13 @@
-workflow REPOSITORY_SCRAP {
+workflow WORKFLOW_REPOSITORY {
 
     repositories_csv = Channel.fromPath(params.input_stage01)
-
     repositories_parquet = REPOSITORY_TO_PARQUET(repositories_csv).flatten()
-
     files_parquet = REPOSITORY_FILES_EXTRACT(repositories_parquet)
-
     REPOSITORY_SUMMARY(files_parquet)
 }
 
 process REPOSITORY_TO_PARQUET {
-    publishDir "${params.silver_dir}/repositories", mode: 'copy'
-
-    tag "$csv.baseName"
+    publishDir "${params.silver_dir}/repositories", mode: 'copy', overwrite: true
 
     input:
     path csv
@@ -27,7 +22,7 @@ process REPOSITORY_TO_PARQUET {
 }
 
 process REPOSITORY_FILES_EXTRACT {
-    publishDir "${params.silver_dir}/files", mode: 'copy'
+    publishDir "${params.silver_dir}/files", mode: 'copy', overwrite: true
     maxForks 1
 
     input:
@@ -43,7 +38,7 @@ process REPOSITORY_FILES_EXTRACT {
 }
 
 process REPOSITORY_SUMMARY {
-    publishDir "${params.dump_dir}/01repo", mode: 'copy'
+    publishDir "${params.dump_dir}/01repo", mode: 'copy', overwrite: true
 
     input:
     path parquet
