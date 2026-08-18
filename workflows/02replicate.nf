@@ -87,16 +87,6 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
     file "\${sample_path}"
     echo "[nf_transcode] Sample block log end"
 
-//    echo "[nf_transcode] wine block log"
-//    which wine
-//    wine --version
-//    echo "[nf_transcode] wine block log end"
-
-//    echo "[nf_transcode] msconvert block log"
-//    wine msconvert --help >/dev/null
-//    echo "msconvert help exit code: \$?"
-//    echo "[nf_transcode] msconvert block log end"
-
     echo "[nf_transcode] transcode log"
     wine msconvert \
         --32 \

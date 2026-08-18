@@ -233,7 +233,7 @@ def download_sample(sample, basepath='stage'):
 
                 sample_output_filename = basepath / "sample_filename.txt"
                 with open( sample_output_filename, 'w' ) as sample_out_file:
-                    sample_out_file.write(output_path.as_posix())
+                    sample_out_file.write(output_path.as_posix()+ "\n")
 
                 return
 
