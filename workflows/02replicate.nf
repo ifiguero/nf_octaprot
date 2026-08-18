@@ -64,16 +64,18 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
     test -d \${SILVER_DIR}
     echo "[nf_transcode] test -d returned: \$?"
 
+    echo "[nf_transcode] Python Sample Downloader log"
     023a_download_raw.py ${replicate_id}
+    echo "[nf_transcode] Python Sample Downloader log"
+
     echo "[nf_transcode] Python returned: \$?"
 
     read -r sample_path < stage/sample_filename.txt
-    echo "[nf_transcode] Raw file download at \${sample_path}"
 
-    echo "[nf_transcode] Sample block information log"
-    ls -lah "\${sample_path}"
-    file "\${sample_path}"
-    echo "[nf_transcode] Sample block information log end"
+    echo "[nf_transcode] Sample file information log"
+    du -hs \${sample_path}*
+    file \${sample_path}
+    echo "[nf_transcode] Sample file information log end"
 
     echo "[nf_transcode] transcode log"
     wine msconvert \
@@ -85,11 +87,11 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
 
     echo "[nf_transcode] transcode log end"
 
-    echo "[nf_transcode] msconvert exit code: \$?"
+    echo "[nf_transcode] transcode exit code: \$?"
 
     echo "[nf_transcode] Gzip"
     gzip -9 -c stage/mzml/${replicate_id}.mzML > ${replicate_id}.mzML.gz
-    echo "[nf_transcode] gzip exit code: \$?"
+    echo "[nf_transcode] Gzip exit code: \$?"
 
     echo "[nf_transcode] Cleanup"
     rm -rf stage
