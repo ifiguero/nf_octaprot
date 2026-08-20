@@ -11,6 +11,8 @@ workflow WORKFLOW_REPLICATES {
     LOAD_SAMPLE_METADATA(bronze_replicate)
     LOAD_MS1_METADATA(bronze_replicate)
     LOAD_MS2_METADATA(bronze_replicate)
+    LOAD_SPECTRA_INTENSITY_BINNING(bronze_replicate)
+    LOAD_SPECTRA_PERCENTILE_BINNING(bronze_replicate)
 }
 
 process LOAD_PARQUET {
@@ -149,5 +151,39 @@ process LOAD_MS2_METADATA {
     script:
     """
     025_get_ms_metadata.py ${mzml} 2
+    """
+}
+
+process LOAD_SPECTRA_INTENSITY_BINNING {
+    storeDir "${params.silver_dir}/ms1_metadata"
+    maxForks 1
+    memory '8 GB'
+
+    input:
+    path mzml
+
+    output:
+    path "${mzml.getBaseName(2)}.parquet"
+
+    script:
+    """
+    026_get_intensity_distribution.py ${mzml} linear
+    """
+}
+
+process LOAD_SPECTRA_PERCENTILE_BINNING {
+    storeDir "${params.silver_dir}/ms2_metadata"
+    maxForks 1
+    memory '8 GB'
+
+    input:
+    path mzml
+
+    output:
+    path "${mzml.getBaseName(2)}.parquet"
+
+    script:
+    """
+    026_get_intensity_distribution.py ${mzml} percentile
     """
 }
