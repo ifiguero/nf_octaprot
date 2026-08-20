@@ -80,11 +80,11 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
 
     echo "[nf_transcode] transcode log"
     wine msconvert \
-        --32 \
+        --32 -v \
         --filter 'peakPicking cwt snr=1 peakSpace=0.1 msLevel=1-' \
         "\${sample_path}" \
-        -o stage/mzml/ \
-        -v
+        -o stage/mzml \
+        --outfile stage/mzml/${replicate_id}.mzML
 
     echo "[nf_transcode] transcode log end"
 
