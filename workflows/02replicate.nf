@@ -84,7 +84,7 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
         --filter 'peakPicking cwt snr=1 peakSpace=0.1 msLevel=1-' \
         "\${sample_path}" \
         -o stage/mzml \
-        --outfile stage/mzml/${replicate_id}.mzML
+        --outfile ${replicate_id}.mzML
 
     echo "[nf_transcode] transcode log end"
 
