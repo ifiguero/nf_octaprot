@@ -109,7 +109,7 @@ process LOAD_SAMPLE_METADATA {
     path mzml
 
     output:
-    path "${mzml.baseName}.parquet"
+    path "${mzml.simpleName}.parquet"
 
     script:
     """
@@ -126,7 +126,7 @@ process LOAD_MS1_METADATA {
     path mzml
 
     output:
-    path "${mzml.baseName}.parquet"
+    path "${mzml.simpleName}.parquet"
 
     script:
     """
@@ -141,7 +141,7 @@ process LOAD_MS2_METADATA {
     path mzml
 
     output:
-    path "${mzml.baseName}.parquet"
+    path "${mzml.simpleName}.parquet"
 
     script:
     """
