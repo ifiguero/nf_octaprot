@@ -30,7 +30,7 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
 
     n_bins = 100
     min_log_intensity = 1.0
-    max_log_intensity = 8.0
+    max_log_intensity = 9.0
     bin_width = (max_log_intensity - min_log_intensity) / n_bins
 
     for spectrum in reader:
@@ -60,33 +60,35 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
             "basename": basename,
             "scan_number": int(scan_number),
             "ms_level": ms_level,
+            "peaks": len(intensities),
             "min_mz": min_mz,
             "max_mz": max_mz,
+            "min_int": min(intensities),
+            "max_int": max(intensities)
+
         }
 
         if binning == "linear":
             counts = [0] * n_bins
-            row["below_range"] = 0
-            row["above_range"] = 0
+
+            row["under"] = 0
+            row["over"] = 0
 
             for intensity in intensities:
                 if intensity < min_log_intensity:
-                    row["below_range"] += 1
+                    row["under"] += 1
                 elif intensity >= max_log_intensity:
-                    row["above_range"] += 1
+                    row["over"] += 1
                 else:
-                    index = int(
-                        (intensity - min_log_intensity) / bin_width
-                    )
+                    index = int( (intensity - min_log_intensity) / bin_width )
                     index = min(index, n_bins - 1)
                     counts[index] += 1
 
             for index, count in enumerate(counts):
-                row[f"intensity_bin_{index:03d}"] = count
+                baseint = 1+(bin_width * (index+0.5))
+                row[f"ibin_{baseint:.1f}"] = count
 
         else:
-            row[f"intensity_percentile_min"] = min(intensities)
-            row[f"intensity_percentile_max"] = max(intensities)
 
             len_intensities = len(intensities)
             percentile_values = [i * (100.0 / n_bins) for i in range(n_bins + 1)]
@@ -100,12 +102,12 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
                     index = int(position)
                     fraction = position - index
                     if index+1 < len_intensities:
-                        row[f"intensity_percentile_bin_{percentile:.2f}"] = float((1 - fraction) * sorted_intensities[index] + fraction * sorted_intensities[index + 1])
+                        row[f"p{percentile:.2f}"] = float((1 - fraction) * sorted_intensities[index] + fraction * sorted_intensities[index + 1])
                     else:
-                        row[f"intensity_percentile_bin_{percentile:.2f}"] = float(sorted_intensities[len_intensities-1])
+                        row[f"p{percentile:.2f}"] = float(sorted_intensities[len_intensities-1])
             else:
                 for percentile in percentile_values:
-                    row[f"intensity_percentile_bin_{percentile:.2f}"] = float(intensities[0])
+                    row[f"p{percentile:.2f}"] = float(intensities[0])
 
         rows.append(row)
 
@@ -145,12 +147,23 @@ def process(input_path: Path, binning: str) -> Path:
         binning=binning,
     )
 
+    sample_keys = rows[0].keys() if rows else ["basename", "scan_number", "ms_level", "min_mz", "max_mz", "min_int", "max_int"]
+    schema = {}
+    for key in sample_keys:
+        if key in ["basename"]:
+            schema[key] = pl.String
+        elif key in ["scan_number", "ms_level"]:
+            schema[key] = pl.Int32
+        elif key in ["min_mz", "max_mz", "min_int", "max_int"]:
+            schema[key] = pl.Float32
+        elif binning=='linear':
+            schema[key] = pl.Int32
+        elif binning=='percentile':
+            schema[key] = pl.Float32
+
     df = pl.DataFrame(
         rows,
-        schema={
-            "basename": pl.String,
-            "scan_number": pl.Int64,
-        },
+        schema=schema,
         strict=False
     ).sort(["basename", "scan_number"]).unique(subset=["basename", "scan_number"], keep="first", maintain_order=True)
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env -S uv run --with polars --with ftputil python3
 
+from __future__ import annotations
 import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from urllib.parse import urlparse
