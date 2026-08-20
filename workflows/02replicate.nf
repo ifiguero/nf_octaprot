@@ -113,7 +113,7 @@ process LOAD_SAMPLE_METADATA {
 
     script:
     """
-    024_get_sample_metadata.py ${mzml} ${mzml.baseName}
+    024_get_sample_metadata.py ${mzml}
     """
 }
 
