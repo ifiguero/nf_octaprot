@@ -44,7 +44,7 @@ process LIST_REPLICATES {
 
 process DOWNLOAD_TRANSCODE_PUBLISH {
     storeDir "${params.bronze_dir}"
-    maxForks 3
+    maxForks 1
     cpus 8
     memory '16 GB'
 
@@ -101,9 +101,9 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
     """
 }
 
-
 process LOAD_SAMPLE_METADATA {
     storeDir "${params.silver_dir}/sample_metadata"
+    maxForks 1
 
     input:
     path mzml
@@ -117,10 +117,9 @@ process LOAD_SAMPLE_METADATA {
     """
 }
 
-
-
 process LOAD_MS1_METADATA {
     storeDir "${params.silver_dir}/ms1_metadata"
+    maxForks 1
 
     input:
     path mzml
@@ -136,6 +135,7 @@ process LOAD_MS1_METADATA {
 
 process LOAD_MS2_METADATA {
     storeDir "${params.silver_dir}/ms2_metadata"
+    maxForks 1
 
     input:
     path mzml
