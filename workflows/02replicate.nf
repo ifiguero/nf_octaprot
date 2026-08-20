@@ -7,6 +7,10 @@ workflow WORKFLOW_REPLICATES {
     replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
 
     bronze_replicate = DOWNLOAD_TRANSCODE_PUBLISH(replicate_ids)
+
+    LOAD_SAMPLE_METADATA(bronze_replicate)
+    LOAD_MS1_METADATA(bronze_replicate)
+    LOAD_MS2_METADATA(bronze_replicate)
 }
 
 process LOAD_PARQUET {
@@ -40,9 +44,9 @@ process LIST_REPLICATES {
 
 process DOWNLOAD_TRANSCODE_PUBLISH {
     storeDir "${params.bronze_dir}"
-    maxForks 1
+    maxForks 3
     cpus 8
-    memory '32 GB'
+    memory '16 GB'
 
     container 'ilabusm/nf_octaprot_transcode'
 
@@ -95,6 +99,52 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
     echo "[nf_transcode] Cleanup exit code: \$?"
     echo "[nf_transcode] Finish"
     """
+}
 
 
+process LOAD_SAMPLE_METADATA {
+    storeDir "${params.silver_dir}/sample_metadata"
+
+    input:
+    path mzml
+
+    output:
+    path "${mzml.baseName}.parquet"
+
+    script:
+    """
+    024_get_sample_metadata.py ${mzml} ${mzml.baseName}
+    """
+}
+
+
+
+process LOAD_MS1_METADATA {
+    storeDir "${params.silver_dir}/ms1_metadata"
+
+    input:
+    path mzml
+
+    output:
+    path "${mzml.baseName}.parquet"
+
+    script:
+    """
+    025_get_ms_metadata.py ${mzml} 1
+    """
+}
+
+process LOAD_MS2_METADATA {
+    storeDir "${params.silver_dir}/ms2_metadata"
+
+    input:
+    path mzml
+
+    output:
+    path "${mzml.baseName}.parquet"
+
+    script:
+    """
+    025_get_ms_metadata.py ${mzml} 2
+    """
 }
