@@ -1,5 +1,9 @@
 #!/usr/bin/env -S uv run --with polars --with ftputil python3
 
+import warnings
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -8,9 +12,6 @@ from ftplib import FTP_TLS
 from pathlib import Path
 import ftputil.session
 import polars as pl
-import warnings
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import ftputil
 import hashlib
