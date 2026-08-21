@@ -140,7 +140,7 @@ process LOAD_MS1_METADATA {
 process LOAD_MS2_METADATA {
     storeDir "${params.silver_dir}/ms2_metadata"
     maxForks 3
-    memory '16 GB'
+    memory '8 GB'
 
     input:
     path mzml
@@ -157,7 +157,7 @@ process LOAD_MS2_METADATA {
 process LOAD_SPECTRA_INTENSITY_BINNING {
     storeDir "${params.silver_dir}/spec_intensity"
     maxForks 3
-    memory '8 GB'
+    memory '16 GB'
 
     input:
     path mzml
@@ -174,7 +174,7 @@ process LOAD_SPECTRA_INTENSITY_BINNING {
 process LOAD_SPECTRA_PERCENTILE_BINNING {
     storeDir "${params.silver_dir}/spec_percentile"
     maxForks 3
-    memory '8 GB'
+    memory '16 GB'
 
     input:
     path mzml
