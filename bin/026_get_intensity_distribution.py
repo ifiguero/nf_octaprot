@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+import math
 from pathlib import Path
 from typing import Any
 from math import log10
@@ -48,6 +49,8 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
         except Exception:
             intensities = []
 
+        len_intensities = len(intensities)
+
         try:
             mz_values = [float(x) for x in spectrum.mz]
             min_mz = min(mz_values) if mz_values else None
@@ -63,8 +66,8 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
             "peaks": len(intensities),
             "min_mz": min_mz,
             "max_mz": max_mz,
-            "min_int": min(intensities),
-            "max_int": max(intensities)
+            "min_int": min(intensities) if len_intensities > 0 else 0,
+            "max_int": max(intensities) if len_intensities > 0 else 0
 
         }
 
@@ -90,8 +93,8 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
 
         else:
 
-            len_intensities = len(intensities)
-            percentile_values = [i * (100.0 / n_bins) for i in range(n_bins + 1)]
+#            percentile_values = [i * (100.0 / n_bins) for i in range(n_bins + 1)]
+            percentile_values = [ 50 * (1 + math.erf((6 * i / n_bins) / 2**0.5)) for i in range(-n_bins // 2, 1+(n_bins // 2) ) ]
 
             if  len_intensities > 1:
                 sorted_intensities = sorted(intensities)
