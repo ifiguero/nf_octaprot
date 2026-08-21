@@ -277,6 +277,7 @@ def main() -> int:
     )
 
     output_path = Path(f"files/{repository_id}.parquet")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     output_df.write_parquet(output_path)
 
