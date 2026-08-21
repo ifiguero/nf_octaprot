@@ -276,7 +276,7 @@ def main() -> int:
         files_list,
     )
 
-    output_path = Path(f"files_{repository_id}.parquet")
+    output_path = Path(f"files/{repository_id}.parquet")
 
     output_df.write_parquet(output_path)
 

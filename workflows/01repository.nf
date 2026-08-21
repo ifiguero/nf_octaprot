@@ -7,7 +7,7 @@ workflow WORKFLOW_REPOSITORY {
 }
 
 process REPOSITORY_TO_PARQUET {
-    publishDir "${params.silver_dir}/repositories", mode: 'copy', overwrite: true
+    publishDir "${params.dump_dir}/01repo", mode: 'copy', overwrite: true
 
     input:
     path csv
@@ -22,18 +22,18 @@ process REPOSITORY_TO_PARQUET {
 }
 
 process REPOSITORY_FILES_EXTRACT {
-    publishDir "${params.silver_dir}/files", mode: 'copy', overwrite: true
+    storeDir "${params.silver_dir}"
     maxForks 1
 
     input:
-    path parquet
+    path repository
 
     output:
-    path "*.parquet"
+    path "files/repository.parquet"
 
     script:
     """
-    012_repository_scrap.py ${parquet}
+    012_repository_scrap.py ${repository}
     """
 }
 
