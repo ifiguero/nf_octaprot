@@ -39,6 +39,7 @@ process REPOSITORY_FILES_EXTRACT {
 
 process REPOSITORY_SUMMARY {
     publishDir "${params.dump_dir}/01repo", mode: 'copy', overwrite: true
+    maxForks 6
 
     input:
     path parquet
