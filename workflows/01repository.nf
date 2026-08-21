@@ -7,7 +7,7 @@ workflow WORKFLOW_REPOSITORY {
 }
 
 process REPOSITORY_TO_PARQUET {
-    publishDir "${params.dump_dir}/01repo", mode: 'copy', overwrite: true
+    publishDir "{params.silver_dir}/repositories", mode: 'copy', overwrite: true
 
     input:
     path csv
