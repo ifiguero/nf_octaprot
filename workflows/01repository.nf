@@ -29,7 +29,7 @@ process REPOSITORY_FILES_EXTRACT {
     path repository
 
     output:
-    path "files/repository.parquet"
+    path "files/${repository}"
 
     script:
     """
