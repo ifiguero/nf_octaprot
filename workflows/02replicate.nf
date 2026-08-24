@@ -193,7 +193,7 @@ process LOAD_SPECTRA_PERCENTILE_BINNING {
 }
 
 process PLOT_SPECTRA_PERCENTILE {
-    storeDir "${params.output_dir}/png_percentile"
+    storeDir "${params.dump_dir}/png_percentile"
     maxForks 3
     memory '16 GB'
 
@@ -210,7 +210,7 @@ process PLOT_SPECTRA_PERCENTILE {
 }
 
 process PLOT_SPECTRA_BINNING {
-    storeDir "${params.output_dir}/png_binning"
+    storeDir "${params.dump_dir}/png_binning"
     maxForks 3
     memory '16 GB'
 
