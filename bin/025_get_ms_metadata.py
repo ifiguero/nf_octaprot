@@ -89,8 +89,9 @@ def summarize_spectra(
     total_spectra = 0
     selected_spectra = 0
     last_ms1_scan = 1
+    warn_scanumber = 0
 
-    for spectrum in reader:
+    for index, spectrum in enumerate(reader):
         total_spectra += 1
 
         try:
@@ -103,11 +104,9 @@ def summarize_spectra(
             continue
 
         scan_number = int(spectrum.ID)
-        if scan_number < total_spectra:
-            logger.debug(
-                    f"spectrum.ID {spectrum.ID}, spectra count: {total_spectra}"
-                )
-            scan_number = total_spectra
+        if scan_number < index:
+            scan_number = index
+            warn_scanumber += 1
 
 
         if ms_level == 1:
@@ -116,9 +115,6 @@ def summarize_spectra(
         if ms_level != requested_ms_level:
             continue
 
-        logger.debug(
-            f"scan_number is {scan_number} type {type(scan_number)}"
-        )
 
         selected_spectra += 1
 
@@ -212,18 +208,16 @@ def summarize_spectra(
                     "value": round(statistics.fmean(delta_mz),3),
                 })
 
-
-
+    if warn_scanumber > 0:
+        logger.warning(
+                f"spectrum.ID mismatch, spectra count: {warn_scanumber}"
+            )
 
     logger.info(
         "Read %d spectra; selected %d MS%d spectra",
         total_spectra,
         selected_spectra,
         requested_ms_level,
-    )
-
-    logger.debug(
-        f"dataframe has {len(rows)} elements"
     )
 
     return rows
