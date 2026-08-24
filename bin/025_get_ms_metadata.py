@@ -110,6 +110,10 @@ def summarize_spectra(
         if ms_level != requested_ms_level:
             continue
 
+        logger.debug(
+            f"scan_number is {len(scan_number)} type {type(scan_number)}"
+        )
+
         selected_spectra += 1
 
         rows.extend(
