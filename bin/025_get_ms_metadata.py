@@ -102,11 +102,13 @@ def summarize_spectra(
             )
             continue
 
-        logger.debug(
-            f"spectrum.ID {spectrum.ID}"
-        )
-
         scan_number = int(spectrum.ID)
+        if scan_number < total_spectra:
+            logger.debug(
+                    f"spectrum.ID {spectrum.ID}, spectra count: {total_spectra}"
+                )
+            scan_number = total_spectra
+
 
         if ms_level == 1:
             last_ms1_scan = scan_number
