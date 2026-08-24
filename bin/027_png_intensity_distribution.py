@@ -373,7 +373,7 @@ def main() -> int:
         parser.error(f"File does not exist: {args.parquet_file}")
 
     try:
-        sample_info = load_sample(args.parquet_file.basename)
+        sample_info = load_sample(Path(args.parquet_file).stem)
         title = f"""
         Sample: ({sample_info['organism']}, {sample_info['source_type']}, {sample_info['material']})
         Instrument: {sample_info['instrument_name']}. Mode: {sample_info['dia']} ({sample_info['window_size']}),)
