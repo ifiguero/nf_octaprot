@@ -102,7 +102,7 @@ def summarize_spectra(
             )
             continue
 
-        scan_number = spectrum.ID
+        scan_number = int(spectrum.ID)
 
         if ms_level == 1:
             last_ms1_scan = scan_number
