@@ -103,7 +103,7 @@ def summarize_spectra(
             continue
 
         logger.debug(
-            f"spectrum.ID {spectrum.ID}}"
+            f"spectrum.ID {spectrum.ID}"
         )
 
         scan_number = int(spectrum.ID)
