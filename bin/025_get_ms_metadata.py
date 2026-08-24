@@ -102,6 +102,10 @@ def summarize_spectra(
             )
             continue
 
+        logger.debug(
+            f"spectrum.ID {spectrum.ID} id {type(spectrum.id)}"
+        )
+
         scan_number = int(spectrum.ID)
 
         if ms_level == 1:
