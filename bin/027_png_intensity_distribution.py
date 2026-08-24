@@ -27,9 +27,64 @@ logger = logging.getLogger(__name__)
 
 
 
+SILVER_ROOT = Path(os.environ["SILVER_DIR"])
+
+TABLE_TO_PARQUET = {
+    "sample_metadata": SILVER_ROOT / "metadata",
+    "replicates": SILVER_ROOT / "replicates",
+}
+
+
+def load_table(table_name: str) -> pl.DataFrame:
+    parquet_root = TABLE_TO_PARQUET[table_name]
+
+    if not parquet_root.exists():
+        return pl.DataFrame()
+
+    parquet_files = sorted(parquet_root.rglob("*.parquet"))
+    if not parquet_files:
+        return pl.DataFrame()
+
+    return pl.concat(
+        [pl.read_parquet(path) for path in parquet_files],
+        how="diagonal_relaxed",
+    )
+def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> str:
+    df_search = (
+        metadata_df.filter(pl.col("basename") == basename, pl.col('accession') == accession )
+          .select("value")
+    )
+    if df_search.height != 1:
+        return 'Not Present'
+
+    return df_searchd.item()
+
+def load_sample(sample_id: str) -> dict:
+
+    df_replicate = (
+        load_table("replicates")
+        .filter(pl.col("id") == sample_id)
+        .select("id", "organism", "source_type", "material")
+    )
+
+    if replicate.height != 1:
+        fail(f"Replicate '{sample_id}' not found")
+
+    sample = row.row(0, named=True)
+
+    df_metadata = load_table("sample_metadata")
+
+    sample['dia'] = get_accession(df_metadata, 'acquisition:type', sample_id )
+    sample['window_size'] = get_accession(df_metadata, 'ms2:isolation_window_avg', sample_id )
+    sample['instrument_name'] = get_accession(df_metadata, 'info:instrument_name', sample_id )
+
+    return sample
+
+
 def create_scan_summary_png(
     parquet_file: Union[str, Path],
     binning: str,
+    title: str
 ) -> Path:
     if binning not in {"linear", "percentile"}:
         raise ValueError("binning must be either 'linear' or 'percentile'")
@@ -120,7 +175,8 @@ def create_scan_summary_png(
         ax.set_xlabel("Intensity bin")
         ax.set_ylabel("Summed peak count")
         ax.set_title(
-            f"Scan histogram summary — {basename}\n"
+            f"Scan histogram summary — {basename}"
+            f"{title}"
             f"Log binning"
         )
         ax.grid(True, which="both", alpha=0.25)
@@ -273,7 +329,8 @@ def create_scan_summary_png(
             ax.set_xlabel("Percentile")
             ax.set_ylabel("log10(intensity)")
             ax.set_title(
-                f"Scan percentile summary — {basename}\n"
+                f"Scan percentile summary — {basename}"
+                f"{title}"
                 f"Median and IQR across scans"
             )
             ax.grid(True, alpha=0.25)
@@ -316,9 +373,15 @@ def main() -> int:
         parser.error(f"File does not exist: {args.parquet_file}")
 
     try:
+        sample_info = load_sample(args.parquet_file.basename)
+        title = f"""
+        Sample: ({sample_info['organism']}, {sample_info['source_type']}, {sample_info['material']})
+        Instrument: {sample_info['instrument_name']}. Mode: {sample_info['dia']} ({sample_info['window_size']}),)
+        """
         create_scan_summary_png(
             parquet_file=args.parquet_file,
             binning=args.binning,
+            title=title
         )
     except Exception as exc:
         logger.error("%s", exc)
