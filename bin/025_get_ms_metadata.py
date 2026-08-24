@@ -91,7 +91,7 @@ def summarize_spectra(
     last_ms1_scan = 1
     warn_scanumber = 0
 
-    for index, spectrum in enumerate(reader):
+    for index, spectrum in enumerate(reader, start=1):
         total_spectra += 1
 
         try:
