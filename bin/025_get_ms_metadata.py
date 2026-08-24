@@ -21,7 +21,7 @@ NS = f"{{{NS_URI}}}"
 
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(levelname)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
@@ -210,6 +210,10 @@ def summarize_spectra(
         total_spectra,
         selected_spectra,
         requested_ms_level,
+    )
+
+    logger.debug(
+        f"dataframe has {len(rows)} elements"
     )
 
     return rows
