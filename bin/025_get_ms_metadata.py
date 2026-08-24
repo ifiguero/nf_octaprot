@@ -111,7 +111,7 @@ def summarize_spectra(
             continue
 
         logger.debug(
-            f"scan_number is {len(scan_number)} type {type(scan_number)}"
+            f"scan_number is {scan_number} type {type(scan_number)}"
         )
 
         selected_spectra += 1
