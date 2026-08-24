@@ -112,9 +112,12 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
                         row[f"p{percentile:.2f}"] = float((1 - fraction) * sorted_intensities[index] + fraction * sorted_intensities[index + 1])
                     else:
                         row[f"p{percentile:.2f}"] = float(sorted_intensities[len_intensities-1])
-            else:
+            elif len_intensities > 0:
                 for percentile in percentile_values:
                     row[f"p{percentile:.2f}"] = float(intensities[0])
+            else:
+                for percentile in percentile_values:
+                    row[f"p{percentile:.2f}"] = 0
 
         rows.append(row)
 
