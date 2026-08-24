@@ -12,7 +12,7 @@ import traceback
 
 import polars as pl
 from pymzml.run import Reader
-
+import os
 import re
 from typing import Union
 
