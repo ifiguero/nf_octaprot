@@ -33,8 +33,9 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
     min_log_intensity = 1.0
     max_log_intensity = 9.0
     bin_width = (max_log_intensity - min_log_intensity) / n_bins
+    warn_scanumber = 0
 
-    for spectrum in reader:
+    for index, spectrum in enumerate(reader, start=1):
         total_spectra += 1
 
         try:
@@ -42,7 +43,10 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
         except (TypeError, ValueError, AttributeError):
             continue
 
-        scan_number = spectrum.ID
+        scan_number = int(spectrum.ID)
+        if scan_number < index:
+            scan_number = index
+            warn_scanumber += 1
 
         try:
             intensities = [log10(1.0 + float(x))  for x in spectrum.i]
@@ -113,6 +117,11 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
                     row[f"p{percentile:.2f}"] = float(intensities[0])
 
         rows.append(row)
+
+    if warn_scanumber > 0:
+        logger.warning(
+                f"spectrum.ID mismatch, spectra count: {warn_scanumber}"
+            )
 
     logger.info(
         "Read %d scans",
