@@ -67,10 +67,10 @@ def load_sample(sample_id: str) -> dict:
         .select("id", "organism", "source_type", "material")
     )
 
-    if replicate.height != 1:
+    if df_replicate.height != 1:
         fail(f"Replicate '{sample_id}' not found")
 
-    sample = row.row(0, named=True)
+    sample = df_replicate.row(0, named=True)
 
     df_metadata = load_table("sample_metadata")
 
