@@ -131,7 +131,7 @@ def create_scan_summary_png(
 
         for column in ibin_columns:
             agg_exprs.append(
-                pl.col(column).sum().alias(column)
+                pl.col(column).cast(pl.Int64).sum().alias(column)
             )
             agg_exprs.append(
                 (pl.col(column) == 0).sum().alias(f"__zero__{column}")
