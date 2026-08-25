@@ -157,7 +157,7 @@ def create_scan_summary_png(
             )
 
             # A logarithmic axis cannot display zero.
-            y_plot = np.where(y > 0, y, np.nan)
+            y_plot = np.where(y > 0, y, -1)
 
             zero_counts = np.array(
                 [row[f"__zero__{c}"] for c in ibin_columns],
@@ -173,9 +173,18 @@ def create_scan_summary_png(
                 label=f"MS {ms_level} "
             )
 
+            ax.plot(
+                x,
+                zero_counts,
+                marker="x",
+                markersize=3,
+                linewidth=1.5,
+                label=f"MS {ms_level} "
+            )
+
         ax.set_yscale("log")
         ax.set_xlabel("Intensity bin")
-        ax.set_ylabel("Summed peak count")
+        ax.set_ylabel("peak count")
         ax.set_title(
             f"Scan histogram summary — {basename}"
             f"{title}"
@@ -316,7 +325,7 @@ def create_scan_summary_png(
                 q1,
                 q3,
                 color=color,
-                alpha=0.15,
+                alpha=0.3,
             )
 
             # Optional: show the full min/max envelope.
@@ -325,7 +334,7 @@ def create_scan_summary_png(
                 vmin,
                 vmax,
                 color=color,
-                alpha=0.05,
+                alpha=0.1,
             )
 
             ax.set_xlabel("Percentile")
