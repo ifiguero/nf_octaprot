@@ -30,10 +30,9 @@ logger = logging.getLogger(__name__)
 SILVER_ROOT = Path(os.environ["SILVER_DIR"])
 
 TABLE_TO_PARQUET = {
-    "sample_metadata": SILVER_ROOT / "metadata",
+    "sample_metadata": SILVER_ROOT / "sample_metadata",
     "replicates": SILVER_ROOT / "replicates",
 }
-
 
 def load_table(table_name: str) -> pl.DataFrame:
     parquet_root = TABLE_TO_PARQUET[table_name]
@@ -49,6 +48,7 @@ def load_table(table_name: str) -> pl.DataFrame:
         [pl.read_parquet(path) for path in parquet_files],
         how="diagonal_relaxed",
     )
+
 def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> str:
     df_search = (
         metadata_df.filter(pl.col("basename") == basename, pl.col('accession') == accession )
@@ -57,9 +57,9 @@ def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> s
     if df_search.height != 1:
         return 'Not Present'
 
-    return df_searchd.item()
+    return df_search.item()
 
-def load_sample(sample_id: str) -> dict:
+def get_sample_metadata(sample_id: str) -> dict:
 
     df_replicate = (
         load_table("replicates")
@@ -78,8 +78,11 @@ def load_sample(sample_id: str) -> dict:
     sample['window_size'] = get_accession(df_metadata, 'ms2:isolation_window_avg', sample_id )
     sample['instrument_name'] = get_accession(df_metadata, 'info:instrument_name', sample_id )
 
-    return sample
+    sample['ms1_spectrum_count'] = get_accession(df_metadata, 'ms1:spectrum_count', sample_id )
+    sample['ms2_spectrum_count'] = get_accession(df_metadata, 'ms2:spectrum_count', sample_id )
+    sample['total_spectrum_count'] = get_accession(df_metadata, 'info:spectrum_count', sample_id )
 
+    return sample
 
 def create_scan_summary_png(
     parquet_file: Union[str, Path],
@@ -160,7 +163,6 @@ def create_scan_summary_png(
                 [row[f"__zero__{c}"] for c in ibin_columns],
                 dtype=int,
             )
-
 
             ax.plot(
                 x,
@@ -373,10 +375,11 @@ def main() -> int:
         parser.error(f"File does not exist: {args.parquet_file}")
 
     try:
-        sample_info = load_sample(Path(args.parquet_file).stem)
-        title = f"""
+        sample_info = get_sample_metadata(Path(args.parquet_file).stem)
+        title = fr"""
         Sample: ({sample_info['organism']}, {sample_info['source_type']}, {sample_info['material']})
-        Instrument: {sample_info['instrument_name']}. Mode: {sample_info['dia']} ({sample_info['window_size']}),)
+        Instrument: {sample_info['instrument_name']}. Mode: {sample_info['dia']} ({sample_info['window_size']} $\frac{{m}}{{z}}$)
+        Spectrum Total: {sample_info['total_spectrum_count']} MS1:{sample_info['ms1_spectrum_count']} MS2:{sample_info['ms2_spectrum_count']}
         """
         create_scan_summary_png(
             parquet_file=args.parquet_file,

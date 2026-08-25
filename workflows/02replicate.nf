@@ -205,6 +205,7 @@ process PLOT_SPECTRA_PERCENTILE {
 
     script:
     """
+    export SILVER_DIR="${params.silver_dir}"
     027_png_intensity_distribution.py ${parquet} percentile
     """
 }
@@ -222,6 +223,7 @@ process PLOT_SPECTRA_BINNING {
 
     script:
     """
+    export SILVER_DIR="${params.silver_dir}"
     027_png_intensity_distribution.py ${parquet} linear
     """
 }
