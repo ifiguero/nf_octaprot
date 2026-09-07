@@ -57,7 +57,7 @@ process DUMP_BREAKDOWN {
     tag "$request.baseName"
 
     input:
-    path request
+    path parquet_files
 
     output:
     path "*.png"
@@ -65,7 +65,7 @@ process DUMP_BREAKDOWN {
     script:
     """
     export SILVER_DIR="${params.silver_access}"
-    992_dump_breakdown.py ${request}
+    992_dump_breakdown.py
     """
 }
 

@@ -434,14 +434,16 @@ def create_olap_cuts(
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
+    if len(sys.argv) > 2:
         print(
             f"usage: {sys.argv[0]} <output-base>",
             file=sys.stderr,
         )
         return 1
-
-    output_base = Path(sys.argv[1])
+    elif len(sys.argv) < 1:
+        output_base = Path("current_run")
+    else:
+        output_base = Path(sys.argv[1])
 
     df = build_dataset()
 
