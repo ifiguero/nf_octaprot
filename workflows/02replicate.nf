@@ -257,7 +257,7 @@ process PLOT_COMPARATIVE_SPECTRA_MS1 {
     path spectra_files
 
     output:
-    path("comparative_ms1.png")
+    path("scan_intensity_profiles_ms1.png")
 
     script:
     """
@@ -274,7 +274,7 @@ process PLOT_COMPARATIVE_SPECTRA_MS2 {
     path spectra_files
 
     output:
-    path("comparative_ms2.png")
+    path("scan_intensity_profiles_ms2.png")
 
     script:
     """
