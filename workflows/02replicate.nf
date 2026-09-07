@@ -54,7 +54,6 @@ process LIST_REPLICATES {
 
 process DUMP_BREAKDOWN {
     publishDir "${params.dump_dir}/99sqldump", mode: 'copy'
-    tag "$request.baseName"
 
     input:
     path parquet_files
