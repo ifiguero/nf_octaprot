@@ -4,9 +4,9 @@ workflow WORKFLOW_REPLICATES {
 
     repository_parquet = LOAD_PARQUET(input_csv)
 
-    replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
+    DUMP_BREAKDOWN(repository_parquet.collect())
 
-    DUMP_BREAKDOWN(replicate_ids.collect())
+    replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
 
     bronze_replicate = DOWNLOAD_TRANSCODE_PUBLISH(replicate_ids)
 
