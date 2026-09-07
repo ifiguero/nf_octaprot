@@ -63,7 +63,7 @@ process DUMP_BREAKDOWN {
 
     script:
     """
-    export SILVER_DIR="${params.silver_access}"
+    export SILVER_DIR="${params.silver_dir}"
     992_dump_breakdown.py
     """
 }
