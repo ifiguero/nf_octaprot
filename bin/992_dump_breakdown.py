@@ -362,19 +362,9 @@ def create_repository_charts(
         threshold=0.005,
     )
 
-    count_pie_chart(
-        df,
-        "organism",
-        "Replicate count distribution by organism",
-        output_base.with_suffix(
-            ".organism_by_replicates.png"
-        ),
-        threshold=0.005,
-    )
-
     size_pie_chart(
         df,
-        "organism",
+        "material",
         "Storage size footprint by organism",
         output_base.with_suffix(
             ".organism_by_size.png"

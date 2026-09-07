@@ -6,6 +6,8 @@ workflow WORKFLOW_REPLICATES {
 
     replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
 
+    DUMP_BREAKDOWN(replicate_ids.collect())
+
     bronze_replicate = DOWNLOAD_TRANSCODE_PUBLISH(replicate_ids)
 
     LOAD_SAMPLE_METADATA(bronze_replicate)
@@ -16,6 +18,8 @@ workflow WORKFLOW_REPLICATES {
     PLOT_SPECTRA_BINNING(spectra_binning)
     PLOT_SPECTRA_PERCENTILE(spectra_percentile)
 
+    PLOT_COMPARATIVE_SPECTRA_MS1(spectra_binning.collect())
+    PLOT_COMPARATIVE_SPECTRA_MS2(spectra_binning.collect())
 
 }
 
@@ -47,6 +51,24 @@ process LIST_REPLICATES {
     022_get_replicates.py ${parquet}
     """
 }
+
+process DUMP_BREAKDOWN {
+    publishDir "${params.dump_dir}/99sqldump", mode: 'copy'
+    tag "$request.baseName"
+
+    input:
+    path request
+
+    output:
+    path "*.png"
+
+    script:
+    """
+    export SILVER_DIR="${params.silver_access}"
+    992_dump_breakdown.py ${request}
+    """
+}
+
 
 process DOWNLOAD_TRANSCODE_PUBLISH {
     storeDir "${params.bronze_dir}"
@@ -206,7 +228,7 @@ process PLOT_SPECTRA_PERCENTILE {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    027_png_intensity_distribution.py ${parquet} percentile
+    027a_png_intensity_distribution.py ${parquet} percentile
     """
 }
 
@@ -224,6 +246,40 @@ process PLOT_SPECTRA_BINNING {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    027_png_intensity_distribution.py ${parquet} linear
+    027a_png_intensity_distribution.py ${parquet} linear
+    """
+}
+
+process PLOT_COMPARATIVE_SPECTRA_MS1 {
+    storeDir "${params.dump_dir}/comparativa"
+    memory '16 GB'
+
+    input:
+    path spectra_files
+
+    output:
+    path("comparative_ms1.png")
+
+    script:
+    """
+    export SILVER_DIR="${params.silver_dir}"
+    027b_png_intensity_lvl.py ms1
+    """
+}
+
+process PLOT_COMPARATIVE_SPECTRA_MS2 {
+    storeDir "${params.dump_dir}/comparativa"
+    memory '16 GB'
+
+    input:
+    path spectra_files
+
+    output:
+    path("comparative_ms2.png")
+
+    script:
+    """
+    export SILVER_DIR="${params.silver_dir}"
+    027b_png_intensity_lvl.py ms2
     """
 }
