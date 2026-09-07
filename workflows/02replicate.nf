@@ -262,7 +262,7 @@ process PLOT_COMPARATIVE_SPECTRA_MS1 {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    027b_png_intensity_lvl.py ms1
+    027b_png_intensity_lvl.py 1
     """
 }
 
@@ -279,6 +279,6 @@ process PLOT_COMPARATIVE_SPECTRA_MS2 {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    027b_png_intensity_lvl.py ms2
+    027b_png_intensity_lvl.py 2
     """
 }
