@@ -440,7 +440,7 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
-    elif len(sys.argv) < 1:
+    elif len(sys.argv) < 2:
         output_base = Path("current_run")
     else:
         output_base = Path(sys.argv[1])
