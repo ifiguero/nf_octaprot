@@ -57,9 +57,6 @@ def load_table(table_name: str) -> pl.DataFrame:
         how="diagonal_relaxed",
     )
 
-
-
-
 def sanitize_filename(text: str) -> str:
     return (
         text.replace("/", "_")
@@ -67,7 +64,6 @@ def sanitize_filename(text: str) -> str:
         .replace(" ", "_")
         .replace(":", "_")
     )
-
 
 def human_size(value: float) -> str:
     units = ["B", "KB", "MB", "GB", "TB", "PB"]
@@ -78,7 +74,6 @@ def human_size(value: float) -> str:
         value /= 1024
 
     return f"{value:.1f} EB"
-
 
 def build_dataset() -> pl.DataFrame:
     replicates = load_table("replicates")
@@ -105,13 +100,8 @@ def build_dataset() -> pl.DataFrame:
         how="inner",
     )
 
+def aggregate_small_groups(    df: pl.DataFrame,    label_column: str,    value_column: str,    threshold: float = 0.02,) -> pl.DataFrame:
 
-def aggregate_small_groups(
-    df: pl.DataFrame,
-    label_column: str,
-    value_column: str,
-    threshold: float = 0.02,
-) -> pl.DataFrame:
     total = (
         df[value_column]
         .cast(pl.Float64)
@@ -192,15 +182,8 @@ def aggregate_small_groups(
         how="diagonal_relaxed",
     )
 
+def pie_chart(    df: pl.DataFrame,    group_column: str,    value_column: str,    title: str,    output_path: Path,    threshold: float = 0.02) -> bool:
 
-def pie_chart(
-    df: pl.DataFrame,
-    group_column: str,
-    value_column: str,
-    title: str,
-    output_path: Path,
-    threshold: float = 0.02
-) -> bool:
     grouped = (
         df
         .filter(
@@ -283,14 +266,8 @@ def pie_chart(
 
     return True
 
+def count_pie_chart(    df: pl.DataFrame,   group_column: str,    title: str,    output_path: Path,    threshold: float = 0.005,) -> bool:
 
-def count_pie_chart(
-    df: pl.DataFrame,
-    group_column: str,
-    title: str,
-    output_path: Path,
-    threshold: float = 0.005,
-) -> bool:
     grouped = (
         df
         .filter(
@@ -311,14 +288,8 @@ def count_pie_chart(
         threshold=threshold,
     )
 
+def size_pie_chart(df: pl.DataFrame, group_column: str, title: str, output_path: Path, threshold: float = 0.01,) -> bool:
 
-def size_pie_chart(
-    df: pl.DataFrame,
-    group_column: str,
-    title: str,
-    output_path: Path,
-    threshold: float = 0.01,
-) -> bool:
     return pie_chart(
         df,
         group_column,
@@ -328,20 +299,14 @@ def size_pie_chart(
         threshold=threshold,
     )
 
+def organism_filter( df: pl.DataFrame, organism: str,) -> pl.DataFrame:
 
-def organism_filter(
-    df: pl.DataFrame,
-    organism: str,
-) -> pl.DataFrame:
     return df.filter(
         pl.col("organism") == organism
     )
 
+def create_repository_charts(df: pl.DataFrame,    output_base: Path,) -> None:
 
-def create_repository_charts(
-    df: pl.DataFrame,
-    output_base: Path,
-) -> None:
     count_pie_chart(
         df,
         "repository_id",
@@ -373,10 +338,8 @@ def create_repository_charts(
     )
 
 
-def create_olap_cuts(
-    df: pl.DataFrame,
-    output_base: Path,
-) -> None:
+def create_olap_cuts(df: pl.DataFrame, output_base: Path,) -> None:
+
     candidate_columns = [
         "source_type",
         "material",
