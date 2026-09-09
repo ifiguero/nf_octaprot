@@ -7,7 +7,7 @@ workflow WORKFLOW_REPLICATES {
     DUMP_BREAKDOWN(repository_parquet.collect())
 
     replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
-/*
+
     bronze_replicate = DOWNLOAD_TRANSCODE_PUBLISH(replicate_ids)
 
     LOAD_SAMPLE_METADATA(bronze_replicate)
@@ -20,7 +20,7 @@ workflow WORKFLOW_REPLICATES {
 
     PLOT_COMPARATIVE_SPECTRA_MS1(spectra_binning.collect())
     PLOT_COMPARATIVE_SPECTRA_MS2(spectra_binning.collect())
-*/
+
 }
 
 process LOAD_PARQUET {
