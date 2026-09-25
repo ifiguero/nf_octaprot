@@ -19,9 +19,6 @@ workflow WORKFLOW_SEARCH {
 
 
 process FASTA_MSFRAGGER_INDEX {
-    cpus 8
-    memory '64 GB'
-    publishDir "${params.silver_dir}/fasta_peptide", mode: 'copy', pattern: "${fasta.baseName}.parquet"
 
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
@@ -32,6 +29,12 @@ process FASTA_MSFRAGGER_INDEX {
     tuple path("fragger.params"),
           path(fasta),
           path("${fasta}.1.pepindex")
+
+
+    cpus 8
+    memory '64 GB'
+    publishDir "${params.silver_dir}/fasta_peptide", mode: 'copy', pattern: "${fasta.baseName}.parquet"
+
 
     script:
     """
