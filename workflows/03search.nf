@@ -31,7 +31,7 @@ process FASTA_MSFRAGGER_INDEX {
     output:
     tuple path("fragger.params"),
           path(fasta),
-          path("${fasta}.1.pepindex"),
+          path("${fasta}.1.pepindex")
 
     script:
     """
