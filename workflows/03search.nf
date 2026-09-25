@@ -23,7 +23,7 @@ process FASTA_MSFRAGGER_INDEX {
     memory '64 GB'
     publishDir "${params.silver_dir}/fasta_peptide", mode: 'copy', pattern: "${fasta.baseName}.parquet"
 
-    container 'dev.ilab.usm.cl/DIA/nf_octaprot_msfragger'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
     input:
     path fasta
@@ -90,7 +90,7 @@ process MSFRAGGER_PSM {
     cpus 8
     memory '64 GB'
 
-    container 'dev.ilab.usm.cl/DIA/nf_octaprot_msfragger'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
     input:
     tuple path(fragger_params), path(fasta), path(pepindex), path(mzml_gz)

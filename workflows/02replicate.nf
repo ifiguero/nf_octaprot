@@ -75,7 +75,7 @@ process DOWNLOAD_TRANSCODE_PUBLISH {
     cpus 8
     memory '16 GB'
 
-    container 'dev.ilab.usm.cl/DIA/nf_octaprot_transcode'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_transcode'
 
     input:
     val replicate_id
