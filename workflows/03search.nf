@@ -79,7 +79,7 @@ process FASTA_MSFRAGGER_INDEX {
 
     echo "[nf_msfragger_db] Building MSFragger peptide index"
     java -Xmx32g -jar /opt/msfragger/msfragger.jar fragger.params
-    echo "[nf_msfragger_db] Index exit code: \\$?"
+    echo "[nf_msfragger_db] Index exit code: \$?"
 
     echo "[nf_msfragger_db] Database files:"
     ls -lah
@@ -119,7 +119,7 @@ process MSFRAGGER_PSM {
 
     echo "[nf_msfragger] Decompress mzML"
     gzip -dc "${mzml_gz}" > "${mzml_gz.getBaseName}"
-    echo "[nf_msfragger] Decompression exit code: \\$?"
+    echo "[nf_msfragger] Decompression exit code: \$?"
 
     echo "[nf_msfragger] MSFragger parameters:"
     cat "${fragger_params}"
@@ -128,7 +128,7 @@ process MSFRAGGER_PSM {
 
     java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.getBaseName}"
 
-    echo "[nf_msfragger] MSFragger exit code: \\$?"
+    echo "[nf_msfragger] MSFragger exit code: \$?"
 
     echo "[nf_msfragger] Search output:"
     ls -lah
