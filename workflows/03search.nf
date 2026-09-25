@@ -118,7 +118,7 @@ process MSFRAGGER_PSM {
     ls -lh "${mzml_gz}"
 
     echo "[nf_msfragger] Decompress mzML"
-    gzip -dc "${mzml_gz}" > "${mzml_gz.getBaseName}"
+    gzip -dc "${mzml_gz}" > "${mzml_gz.baseName}"
     echo "[nf_msfragger] Decompression exit code: \$?"
 
     echo "[nf_msfragger] MSFragger parameters:"
@@ -126,7 +126,7 @@ process MSFRAGGER_PSM {
 
     echo "[nf_msfragger] MSFragger search"
 
-    java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.getBaseName}"
+    java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] MSFragger exit code: \$?"
 
@@ -134,7 +134,7 @@ process MSFRAGGER_PSM {
     ls -lah
 
     echo "[nf_msfragger] Cleanup"
-    rm -f "${mzml_gz.getBaseName}"
+    rm -f "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] Finish"
     """
