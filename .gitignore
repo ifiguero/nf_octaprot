@@ -3,3 +3,6 @@
 modules/**
 assets/raw
 png/**
+lib/MSFragger
+lib/*fasta
+out*

@@ -1,0 +1,18 @@
+FROM eclipse-temurin:17-jre-jammy
+
+WORKDIR /opt/msfragger
+
+# Copy your licensed MSFragger JAR into the image.
+# Keep the source filename versioned, but give it a stable name inside
+# the container.
+COPY MSFragger/MSFragger-*.jar /opt/msfragger/msfragger.jar
+COPY MSFragger/ext /opt/msfragger/ext
+
+# Optional convenience launcher.
+RUN printf '%s\n' \
+    '#!/bin/bash' \
+    'exec java "$@" -jar /opt/msfragger/msfragger.jar' \
+    > /usr/local/bin/msfragger \
+    && chmod +x /usr/local/bin/msfragger
+
+CMD ["msfragger"]
