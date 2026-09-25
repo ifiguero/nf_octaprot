@@ -92,6 +92,7 @@ process FASTA_MSFRAGGER_INDEX {
 process MSFRAGGER_PSM {
     cpus 8
     memory '64 GB'
+    maxForks 4
 
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
