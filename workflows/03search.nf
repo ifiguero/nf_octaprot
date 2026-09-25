@@ -1,4 +1,4 @@
-include { LIST_REPLICATES } from './02_replicate.nf'
+include { LIST_REPLICATES } from './02replicate.nf'
 
 workflow WORKFLOW_SEARCH {
 
