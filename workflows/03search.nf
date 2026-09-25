@@ -103,9 +103,11 @@ process MSFRAGGER_PSM {
     script:
     """
     echo "[nf_msfragger] Start"
-    echo "[nf_msfragger] Sample: ${sample_name}"
 
-    echo "[nf_msfragger] Database:"
+    echo "[nf_msfragger] PARAMS:"
+    cat "${fragger_params}"
+
+    echo "[nf_msfragger] FASTA:"
     ls -lh "${fasta}"
     ls -lh "${pepindex}"
 
