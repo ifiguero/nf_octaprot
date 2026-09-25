@@ -5,7 +5,7 @@ workflow WORKFLOW_SEARCH {
 
     fasta_files = Channel.fromPath(params.input_fasta)
 
-    replicates_ch = Channel.fromPath("${params.silver_dir}/replicates")
+    replicates_ch = Channel.fromPath("${params.silver_dir}/replicates/*.parquet")
     mzml_gz_ch = LIST_REPLICATES(replicates_ch).splitText().map { it.trim() }.filter { it }.map { file("${params.silver_dir}/${it}.mzML.gz") }
 
 
