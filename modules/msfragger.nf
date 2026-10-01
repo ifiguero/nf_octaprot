@@ -1,5 +1,5 @@
 
-process FASTA_MSFRAGGER_INDEX {
+process MSFRAGGER_CONFIG {
     cpus 8
     memory '64 GB'
     publishDir "${params.silver_dir}/fasta_peptide", mode: 'copy', pattern: "*.parquet"

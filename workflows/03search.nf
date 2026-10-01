@@ -1,5 +1,8 @@
 include { LIST_REPLICATES } from '../modules/parquet.nf'
-include { FASTA_MSFRAGGER_INDEX; MSFRAGGER_PSM } from '../modules/msfragger.nf'
+include { MSFRAGGER_CONFIG; MSFRAGGER_PSM } from '../modules/msfragger.nf'
+include { DIANN_CONFIG; DIANN_PSM } from '../modules/diann.nf'
+include { ALPHADIA_CONFIG; ALPHADIA_PSM } from '../modules/alphadia.nf'
+include { SAGE_CONFIG; SAGE_PSM } from '../modules/sage.nf'
 
 workflow WORKFLOW_SEARCH {
 
@@ -10,10 +13,55 @@ workflow WORKFLOW_SEARCH {
     mzml_gz_ch = LIST_REPLICATES(replicates_ch).splitText().map { it.trim() }.filter { it }.map { file("${params.bronze_dir}/${it}.mzML.gz") }
 
 
-    msfragger_fasta_ch = FASTA_MSFRAGGER_INDEX( fasta_files )
-    msfragger_queue = msfragger_fasta_ch.combine( mzml_gz_ch )
+    MSFRAGGER_SEARCH(fasta_files, mzml_gz_ch)
+    DIANN_SEARCH(fasta_files, mzml_gz_ch)
+    SAGE_SEARCH(fasta_files, mzml_gz_ch)
+    ALPHADIA_SEARCH(fasta_files, mzml_gz_ch)
 
-    MSFRAGGER_PSM( msfragger_queue )
+}
+
+workflow MSFRAGGER_SEARCH {
+    take:
+      fasta_files
+      mzml_gz
+
+    main:
+      config_ch = MSFRAGGER_CONFIG( fasta_files )
+      job_queue = config_ch.combine( mzml_gz )
+      MSFRAGGER_PSM( job_queue )
+}
 
 
+workflow DIANN_SEARCH {
+    take:
+      fasta_files
+      mzml_gz
+
+    main:
+      config_ch = DIANN_CONFIG( fasta_files )
+      job_queue = config_ch.combine( mzml_gz )
+      DIANN_PSM( job_queue )
+}
+
+workflow ALPHADIA_SEARCH {
+    take:
+      fasta_files
+      mzml_gz
+
+    main:
+      config_ch = ALPHADIA_CONFIG( fasta_files )
+      job_queue = config_ch.combine( mzml_gz )
+      ALPHADIA_PSM( job_queue )
+}
+
+
+workflow SAGE_SEARCH {
+    take:
+      fasta_files
+      mzml_gz
+
+    main:
+      config_ch = SAGE_CONFIG( fasta_files )
+      job_queue = config_ch.combine( mzml_gz )
+      SAGE_PSM( job_queue )
 }
