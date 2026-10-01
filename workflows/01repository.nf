@@ -1,54 +1,10 @@
+
+include { REPOSITORY_TO_PARQUET; REPOSITORY_FILES_EXTRACT; REPOSITORY_SUMMARY } from '../modules/scrapping.nf'
+
 workflow WORKFLOW_REPOSITORY {
 
     repositories_csv = Channel.fromPath(params.input_stage01)
     repositories_parquet = REPOSITORY_TO_PARQUET(repositories_csv).flatten()
     files_parquet = REPOSITORY_FILES_EXTRACT(repositories_parquet)
     REPOSITORY_SUMMARY(files_parquet)
-}
-
-process REPOSITORY_TO_PARQUET {
-    publishDir "${params.silver_dir}/repositories", mode: 'copy', overwrite: true
-
-    input:
-    path csv
-
-    output:
-    path "*.parquet"
-
-    script:
-    """
-    011_repository_to_parquet.py ${csv}
-    """
-}
-
-process REPOSITORY_FILES_EXTRACT {
-    storeDir "${params.silver_dir}"
-    maxForks 1
-
-    input:
-    path repository
-
-    output:
-    path "files/${repository}"
-
-    script:
-    """
-    012_repository_scrap.py ${repository}
-    """
-}
-
-process REPOSITORY_SUMMARY {
-    publishDir "${params.dump_dir}/01repo", mode: 'copy', overwrite: true
-    maxForks 6
-
-    input:
-    path parquet
-
-    output:
-    path "*.csv"
-
-    script:
-    """
-    013_repository_summary_csv.py ${parquet}
-    """
 }

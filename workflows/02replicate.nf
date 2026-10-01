@@ -1,10 +1,17 @@
+
+include { LOAD_REPLICATES; LIST_REPLICATES; LOAD_SAMPLE_METADATA; LOAD_MS1_METADATA; LOAD_MS2_METADATA } from '../modules/parquet.nf'
+include { LOAD_SPECTRA_INTENSITY_BINNING; LOAD_SPECTRA_PERCENTILE_BINNING } from '../modules/parquet.nf'
+include { DOWNLOAD_TRANSCODE_PUBLISH } from '../modules/transcode.nf'
+
+include { REPLICATES_BREAKDOWN} from '../modules/plots.nf'
+include { COMPARATIVE_SPECTRA_MS1; COMPARATIVE_SPECTRA_MS2; SPECTRA_BINNING; SPECTRA_PERCENTILE} from '../modules/plots.nf'
+
 workflow WORKFLOW_REPLICATES {
 
     input_csv = Channel.fromPath(params.input_stage02)
 
-    repository_parquet = LOAD_PARQUET(input_csv)
+    repository_parquet = LOAD_REPLICATES(input_csv)
 
-    DUMP_BREAKDOWN(repository_parquet.collect())
 
     replicate_ids = LIST_REPLICATES(repository_parquet).splitText().map { it.trim() }.filter { it }
 
@@ -15,270 +22,11 @@ workflow WORKFLOW_REPLICATES {
     LOAD_MS2_METADATA(bronze_replicate)
     spectra_binning = LOAD_SPECTRA_INTENSITY_BINNING(bronze_replicate)
     spectra_percentile = LOAD_SPECTRA_PERCENTILE_BINNING(bronze_replicate)
-    PLOT_SPECTRA_BINNING(spectra_binning)
-    PLOT_SPECTRA_PERCENTILE(spectra_percentile)
 
-    PLOT_COMPARATIVE_SPECTRA_MS1(spectra_binning.collect())
-    PLOT_COMPARATIVE_SPECTRA_MS2(spectra_binning.collect())
+    REPLICATES_BREAKDOWN(repository_parquet.collect())
+    SPECTRA_BINNING(spectra_binning)
+    SPECTRA_PERCENTILE(spectra_percentile)
+    COMPARATIVE_SPECTRA_MS1(spectra_binning.collect())
+    COMPARATIVE_SPECTRA_MS2(spectra_binning.collect())
 
-}
-
-process LOAD_PARQUET {
-    publishDir "${params.silver_dir}/replicates", mode: 'copy', overwrite: true
-
-    input:
-    path csv
-
-    output:
-    path "*.parquet"
-
-    script:
-    """
-    021_load_replicates.py ${csv}
-    """
-}
-
-process LIST_REPLICATES {
-
-    input:
-    path parquet
-
-    output:
-    stdout
-
-    script:
-    """
-    022_get_replicates.py ${parquet}
-    """
-}
-
-process DUMP_BREAKDOWN {
-    publishDir "${params.dump_dir}/99sqldump", mode: 'copy'
-
-    input:
-    path parquet_files
-
-    output:
-    path "*.png"
-
-    script:
-    """
-    export SILVER_DIR="${params.silver_dir}"
-    992_dump_breakdown.py
-    """
-}
-
-
-process DOWNLOAD_TRANSCODE_PUBLISH {
-    storeDir "${params.bronze_dir}"
-    maxForks 1
-    cpus 8
-    memory '16 GB'
-
-    container 'dev.ilab.usm.cl/dia/nf_octaprot_transcode'
-
-    input:
-    val replicate_id
-
-    output:
-    path "${replicate_id}.mzML.gz"
-
-    script:
-    """
-    echo "[nf_transcode] Start"
-    export SILVER_DIR="${params.silver_dir}"
-    echo "[nf_transcode] SILVER_DIR: \${SILVER_DIR}"
-
-    test -d \${SILVER_DIR}
-    echo "[nf_transcode] test -d returned: \$?"
-
-    echo "[nf_transcode] Python Sample Downloader log"
-    023a_download_raw.py ${replicate_id}
-    echo "[nf_transcode] Python Sample Downloader log"
-
-    echo "[nf_transcode] Python returned: \$?"
-
-    read -r sample_path < stage/sample_filename.txt
-
-    echo "[nf_transcode] Sample file information log"
-    du -hs \${sample_path}*
-    file \${sample_path}
-    echo "[nf_transcode] Sample file information log end"
-
-    echo "[nf_transcode] transcode log"
-    wine msconvert \
-        --32 -v \
-        --filter 'peakPicking cwt snr=1 peakSpace=0.1 msLevel=1-' \
-        "\${sample_path}" \
-        -o stage/mzml \
-        --outfile ${replicate_id}.mzML
-
-    echo "[nf_transcode] transcode log end"
-
-    echo "[nf_transcode] transcode exit code: \$?"
-
-    echo "[nf_transcode] Gzip"
-    gzip -9 -c stage/mzml/${replicate_id}.mzML > ${replicate_id}.mzML.gz
-    echo "[nf_transcode] Gzip exit code: \$?"
-
-    echo "[nf_transcode] Cleanup"
-    rm -rf stage
-    echo "[nf_transcode] Cleanup exit code: \$?"
-    echo "[nf_transcode] Finish"
-    """
-}
-
-process LOAD_SAMPLE_METADATA {
-    storeDir "${params.silver_dir}/sample_metadata"
-    maxForks 1
-    memory '4 GB'
-
-    input:
-    path mzml
-
-    output:
-    path "${mzml.getBaseName(2)}.parquet"
-
-    script:
-    """
-    024_get_sample_metadata.py ${mzml}
-    """
-}
-
-process LOAD_MS1_METADATA {
-    storeDir "${params.silver_dir}/ms1_metadata"
-    maxForks 1
-    memory '8 GB'
-
-    input:
-    path mzml
-
-    output:
-    path "${mzml.getBaseName(2)}.parquet"
-
-    script:
-    """
-    025_get_ms_metadata.py ${mzml} 1
-    """
-}
-
-process LOAD_MS2_METADATA {
-    storeDir "${params.silver_dir}/ms2_metadata"
-    maxForks 3
-    memory '8 GB'
-
-    input:
-    path mzml
-
-    output:
-    path "${mzml.getBaseName(2)}.parquet"
-
-    script:
-    """
-    025_get_ms_metadata.py ${mzml} 2
-    """
-}
-
-process LOAD_SPECTRA_INTENSITY_BINNING {
-    storeDir "${params.silver_dir}/spec_intensity"
-    maxForks 3
-    memory '16 GB'
-
-    input:
-    path mzml
-
-    output:
-    path "${mzml.getBaseName(2)}.parquet"
-
-    script:
-    """
-    026_get_intensity_distribution.py ${mzml} linear
-    """
-}
-
-process LOAD_SPECTRA_PERCENTILE_BINNING {
-    storeDir "${params.silver_dir}/spec_percentile"
-    maxForks 3
-    memory '16 GB'
-
-    input:
-    path mzml
-
-    output:
-    path "${mzml.getBaseName(2)}.parquet"
-
-    script:
-    """
-    026_get_intensity_distribution.py ${mzml} percentile
-    """
-}
-
-process PLOT_SPECTRA_PERCENTILE {
-    storeDir "${params.dump_dir}/png_percentile"
-    maxForks 3
-    memory '16 GB'
-
-    input:
-    path parquet
-
-    output:
-    path "${parquet.baseName}.png"
-
-    script:
-    """
-    export SILVER_DIR="${params.silver_dir}"
-    027a_png_intensity_distribution.py ${parquet} percentile
-    """
-}
-
-process PLOT_SPECTRA_BINNING {
-    storeDir "${params.dump_dir}/png_binning"
-    maxForks 3
-    memory '16 GB'
-
-    input:
-    path parquet
-
-    output:
-    path "${parquet.baseName}.png"
-
-    script:
-    """
-    export SILVER_DIR="${params.silver_dir}"
-    027a_png_intensity_distribution.py ${parquet} linear
-    """
-}
-
-process PLOT_COMPARATIVE_SPECTRA_MS1 {
-    storeDir "${params.dump_dir}/comparativa"
-    memory '16 GB'
-
-    input:
-    path spectra_files
-
-    output:
-    path("scan_intensity_profiles_ms1.png")
-
-    script:
-    """
-    export SILVER_DIR="${params.silver_dir}"
-    027b_png_intensity_lvl.py 1
-    """
-}
-
-process PLOT_COMPARATIVE_SPECTRA_MS2 {
-    storeDir "${params.dump_dir}/comparativa"
-    memory '16 GB'
-
-    input:
-    path spectra_files
-
-    output:
-    path("scan_intensity_profiles_ms2.png")
-
-    script:
-    """
-    export SILVER_DIR="${params.silver_dir}"
-    027b_png_intensity_lvl.py 2
-    """
 }
