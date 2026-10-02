@@ -1,0 +1,43 @@
+# -------------------------------------------------------------------
+# Stage 1: Clone the repository
+# -------------------------------------------------------------------
+FROM alpine/git:latest AS repo
+
+WORKDIR /src
+
+RUN git clone --depth 1 https://github.com/MannLabs/alphadia .
+
+
+# -------------------------------------------------------------------
+# Stage 2: Application image
+# -------------------------------------------------------------------
+FROM mosthege/pythonnet:python3.11.2-mono6.12-pythonnet3.0.1
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+ARG UID=10001
+
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/home/alphadiauser" \
+    --shell "/sbin/nologin" \
+    --uid "${UID}" \
+    alphadiauser
+
+# Copy the repository from the first stage
+COPY --from=repo /src/pyproject.toml pyproject.toml
+COPY --from=repo /src/docs docs
+COPY --from=repo /src/gui gui
+COPY --from=repo /src/requirements requirements
+COPY --from=repo /src/alphadia alphadia
+COPY --from=repo /src/MANIFEST.in MANIFEST.in
+
+RUN pip install --no-cache-dir ".[stable]"
+
+USER alphadiauser
+
+CMD ["alphadia", "--config", "/app/data/config/config.yaml"]

@@ -3,7 +3,7 @@ process ALPHADIA_CONFIG {
     cpus 8
     memory '16 GB'
 
-    container 'mannlabs/alphadia:2.1.3'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
     input:
     path fasta
@@ -51,7 +51,7 @@ process ALPHADIA_PSM {
     memory '64 GB'
     maxForks 4
 
-    container 'mannlabs/alphadia:2.1.3'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
     input:
     tuple path(alphadia_conf),
