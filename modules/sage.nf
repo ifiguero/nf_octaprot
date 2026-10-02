@@ -3,7 +3,7 @@ process SAGE_CONFIG {
     cpus 8
     memory '16 GB'
 
-    container 'ghcr.io/lazear/sage:latest'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_sage'
 
     input:
     path fasta
@@ -53,7 +53,7 @@ process SAGE_PSM {
     memory '64 GB'
     maxForks 4
 
-    container 'ghcr.io/lazear/sage:latest'
+    container 'dev.ilab.usm.cl/dia/nf_octaprot_sage'
 
     input:
     tuple path(sage_config),
