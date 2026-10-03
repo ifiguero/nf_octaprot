@@ -9,11 +9,11 @@ process SAGE_CONFIG {
     path fasta
 
     output:
-    tuple path(fasta)
+    path(fasta)
 
-    script:
+    script: // placeholder 
     """
-
+    test -f "${fasta}"
     """
 }
 
