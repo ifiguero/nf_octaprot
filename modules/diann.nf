@@ -47,8 +47,8 @@ process DIANN_PSM {
     """
     echo "[nf_diann] Start"
 
-    echo "[nf_diann] Configuration:"
-    cat "${diann_conf}"
+    echo "[nf_diann] Spectral Library:"
+    ls -lh "${speclib}"
 
     echo "[nf_diann] FASTA:"
     ls -lh "${fasta}"
