@@ -28,6 +28,9 @@ workflow MSFRAGGER_SEARCH {
     main:
       config_ch = MSFRAGGER_CONFIG( fasta_files )
       job_queue = config_ch.combine( mzml_gz )
+      if (params.test) {
+          job_queue = job_queue.take(1)
+      }
       MSFRAGGER_PSM( job_queue )
 }
 
