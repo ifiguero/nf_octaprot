@@ -25,15 +25,15 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-ARG UID=10001
+#ARG UID=10001
 
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/home/alphadiauser" \
-    --shell "/sbin/nologin" \
-    --uid "${UID}" \
-    alphadiauser
+#RUN adduser \
+#    --disabled-password \
+#    --gecos "" \
+#    --home "/home/alphadiauser" \
+#    --shell "/sbin/nologin" \
+#    --uid "${UID}" \
+#    alphadiauser
 
 # Copy the repository from the first stage
 COPY --from=repo /src/pyproject.toml pyproject.toml
@@ -49,6 +49,6 @@ RUN pip install --no-cache-dir ".[stable]"
 COPY --from=tool-provider /usr/bin/time /usr/bin/time
 COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
 
-USER alphadiauser
+#USER alphadiauser
 
 CMD ["alphadia", "--config", "/app/data/config/config.yaml"]
