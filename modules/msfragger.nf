@@ -105,7 +105,7 @@ process MSFRAGGER_PSM {
 
     echo "[nf_msfragger] MSFragger search"
 
-    java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
+    /usr/bin/time -v -o runtime.tsv java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] MSFragger exit code: \$?"
 

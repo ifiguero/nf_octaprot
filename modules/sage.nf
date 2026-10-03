@@ -11,7 +11,7 @@ process SAGE_CONFIG {
     output:
     path(fasta)
 
-    script: // placeholder 
+    script: // placeholder
     """
     test -f "${fasta}"
     """
@@ -71,7 +71,7 @@ EOF
 
     echo "[SAGE_PSM] Running Sage"
 
-    sage sage.json "${mzml_gz.baseName}" \
+    /usr/bin/time -v -o runtime.tsv sage sage.json "${mzml_gz.baseName}" \
         --fasta "${fasta}" \
         --output_directory .
 

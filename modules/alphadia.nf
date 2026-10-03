@@ -80,7 +80,7 @@ process ALPHADIA_PSM {
 
     echo "[nf_alphadia] Running AlphaDIA"
 
-    alphadia \
+    /usr/bin/time -v -o runtime.tsv alphadia \
         --config "${alphadia_conf}" \
         --fasta "${fasta}" \
         --file "${mzml_gz.baseName}" \

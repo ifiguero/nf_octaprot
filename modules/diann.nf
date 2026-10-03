@@ -18,7 +18,7 @@ process DIANN_CONFIG {
     echo "[nf_diann_config] FASTA:"
     ls -lh "${fasta}"
 
-    diann --fasta ${fasta} --fasta-search --predictor --gen-spec-lib --threads 8 --out-lib ${fasta.baseName}.speclib --min-pep-len 5  --max-pep-len 50 --missed-cleavages 2 --unimod4
+    /usr/bin/time -v -o runtime.tsv diann --fasta ${fasta} --fasta-search --predictor --gen-spec-lib --threads 8 --out-lib ${fasta.baseName}.speclib --min-pep-len 5  --max-pep-len 50 --missed-cleavages 2 --unimod4
 
     echo "[nf_diann_config] Spectral Library:"
     ls -lh *.speclib
@@ -61,7 +61,7 @@ process DIANN_PSM {
 
     echo "[nf_diann] Running DIA-NN"
 
-    diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}"  --out "${mzml_gz.getBaseName(2)}.tsv"
+    /usr/bin/time -v -o runtime.tsv diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}"  --out "${mzml_gz.getBaseName(2)}.tsv"
 
     echo "[nf_diann] Exit code: \$?"
 
