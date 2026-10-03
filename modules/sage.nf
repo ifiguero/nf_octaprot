@@ -9,46 +9,15 @@ process SAGE_CONFIG {
     path fasta
 
     output:
-    tuple path("sage.config.toml"),
-          path(fasta)
+    tuple path(fasta)
 
     script:
     """
-    echo "[nf_sage_config] Start"
 
-    echo "[nf_sage_config] FASTA:"
-    ls -lh "${fasta}"
-
-    cat > sage.config.toml <<EOF
-[database]
-fasta = "${fasta}"
-
-[precursor_tol]
-value = 20.0
-unit = "ppm"
-
-[fragment_tol]
-value = 20.0
-unit = "ppm"
-
-[enzyme]
-name = "trypsin"
-missed_cleavages = 2
-
-[search]
-generate_decoys = true
-EOF
-
-    echo "[nf_sage_config] Configuration:"
-    cat sage.config.toml
-
-    echo "[nf_sage_config] Finish"
     """
 }
 
-
 process SAGE_PSM {
-
     cpus 8
     memory '64 GB'
     maxForks 4
@@ -56,8 +25,7 @@ process SAGE_PSM {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_sage'
 
     input:
-    tuple path(sage_config),
-          path(fasta),
+    tuple path(fasta),
           path(mzml_gz)
 
     output:
@@ -65,32 +33,53 @@ process SAGE_PSM {
 
     script:
     """
-    echo "[nf_sage] Start"
+    echo "[SAGE_PSM] Start"
 
-    echo "[nf_sage] Configuration:"
-    cat "${sage_config}"
-
-    echo "[nf_sage] FASTA:"
+    echo "[SAGE_PSM] FASTA:"
     ls -lh "${fasta}"
 
-    echo "[nf_sage] mzML:"
+    echo "[SAGE_PSM] mzML:"
     ls -lh "${mzml_gz}"
 
-    echo "[nf_sage] Decompress mzML"
     gzip -dc "${mzml_gz}" > "${mzml_gz.baseName}"
 
-    echo "[nf_sage] Running Sage"
+    cat > sage.json <<EOF
+{
+    "database": {
+        "fasta": "${fasta}"
+    },
+    "precursor_tol": {
+        "value": 20.0,
+        "unit": "ppm"
+    },
+    "fragment_tol": {
+        "value": 20.0,
+        "unit": "ppm"
+    },
+    "enzyme": {
+        "name": "trypsin",
+        "missed_cleavages": 2
+    },
+    "search": {
+        "generate_decoys": true
+    }
+}
+EOF
 
-    sage \
-        "${sage_config}"
+    echo "[SAGE_PSM] Configuration:"
+    cat sage.json
 
-    echo "[nf_sage] Sage exit code: \\$?"
+    echo "[SAGE_PSM] Running Sage"
 
-    echo "[nf_sage] Output:"
+    sage sage.json "${mzml_gz.baseName}" \
+        --fasta "${fasta}" \
+        --output_directory .
+
+    echo "[SAGE_PSM] Output:"
     ls -lah
 
     rm -f "${mzml_gz.baseName}"
 
-    echo "[nf_sage] Finish"
+    echo "[SAGE_PSM] Finish"
     """
 }

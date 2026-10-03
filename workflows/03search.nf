@@ -40,6 +40,9 @@ workflow DIANN_SEARCH {
     main:
       config_ch = DIANN_CONFIG( fasta_files )
       job_queue = config_ch.combine( mzml_gz )
+      if (params.test) {
+          job_queue = job_queue.take(1)
+      }
       DIANN_PSM( job_queue )
 }
 
@@ -51,6 +54,9 @@ workflow ALPHADIA_SEARCH {
     main:
       config_ch = ALPHADIA_CONFIG( fasta_files )
       job_queue = config_ch.combine( mzml_gz )
+      if (params.test) {
+          job_queue = job_queue.take(1)
+      }
       ALPHADIA_PSM( job_queue )
 }
 
@@ -63,5 +69,8 @@ workflow SAGE_SEARCH {
     main:
       config_ch = SAGE_CONFIG( fasta_files )
       job_queue = config_ch.combine( mzml_gz )
+      if (params.test) {
+          job_queue = job_queue.take(1)
+      }
       SAGE_PSM( job_queue )
 }

@@ -9,8 +9,7 @@ process DIANN_CONFIG {
     path fasta
 
     output:
-    tuple path("diann.conf"),
-          path(fasta)
+    tuple path(fasta), path("*.speclib")
 
     script:
     """
@@ -19,20 +18,10 @@ process DIANN_CONFIG {
     echo "[nf_diann_config] FASTA:"
     ls -lh "${fasta}"
 
-    cat > diann.conf <<EOF
---threads 8
---fasta ${fasta}
---cut K*,R*
---missed-cleavages 2
---mass-acc 20
---mass-acc-ms1 20
---matrices
---qvalue 0.01
---gen-spec-lib
-EOF
+    diann --fasta ${fasta} --fasta-search --predictor --gen-spec-lib --threads 8 --out-lib ${fasta.baseName}.speclib --min-pep-len 5  --max-pep-len 50 --missed-cleavages 2 --unimod4
 
-    echo "[nf_diann_config] Configuration:"
-    cat diann.conf
+    echo "[nf_diann_config] Spectral Library:"
+    ls -lh *.speclib
 
     echo "[nf_diann_config] Finish"
     """
@@ -47,8 +36,8 @@ process DIANN_PSM {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_diann'
 
     input:
-    tuple path(diann_conf),
-          path(fasta),
+    tuple path(fasta),
+          path(speclib),
           path(mzml_gz)
 
     output:
@@ -72,14 +61,7 @@ process DIANN_PSM {
 
     echo "[nf_diann] Running DIA-NN"
 
-    diann \\
-        --threads ${task.cpus} \\
-        --fasta "${fasta}" \\
-        --f "${mzml_gz.baseName}" \\
-        --out report.tsv \\
-        --qvalue 0.01 \\
-        --matrices \\
-        --gen-spec-lib
+    diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}"  --out "${mzml_gz.getBaseName(2)}.tsv"
 
     echo "[nf_diann] Exit code: \$?"
 
