@@ -1,0 +1,17 @@
+FROM ubuntu:22.04 AS tool-provider
+
+# Install time and prepare clean binaries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    time \
+    && rm -rf /var/lib/apt/lists/*
+
+
+FROM ghcr.io/lazear/sage:latest
+
+COPY --from=tool-provider /usr/bin/time /usr/bin/time
+COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
+
+WORKDIR /opt/msfragger
+
+
+CMD ["sage"]

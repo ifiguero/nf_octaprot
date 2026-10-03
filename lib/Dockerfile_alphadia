@@ -7,6 +7,13 @@ WORKDIR /src
 
 RUN git clone --depth 1 https://github.com/MannLabs/alphadia .
 
+FROM ubuntu:22.04 AS tool-provider
+
+# Install time and prepare clean binaries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    time \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # -------------------------------------------------------------------
 # Stage 2: Application image
@@ -36,7 +43,11 @@ COPY --from=repo /src/requirements requirements
 COPY --from=repo /src/alphadia alphadia
 COPY --from=repo /src/MANIFEST.in MANIFEST.in
 
+
 RUN pip install --no-cache-dir ".[stable]"
+
+COPY --from=tool-provider /usr/bin/time /usr/bin/time
+COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
 
 USER alphadiauser
 

@@ -1,3 +1,11 @@
+FROM ubuntu:22.04 AS tool-provider
+
+# Install time and prepare clean binaries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    time \
+    && rm -rf /var/lib/apt/lists/*
+
+
 FROM ubuntu:22.04
 
 # Some metadata
@@ -43,6 +51,10 @@ RUN wget https://github.com/vdemichev/DiaNN/releases/download/2.0/DIA-NN-2.5.1-A
 # Remove unnecessary packages
 RUN apt-get remove -y wget unzip && apt-get autoremove -y && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+COPY --from=tool-provider /usr/bin/time /usr/bin/time
+COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
+
 
 # Set appropriate permissions for the DIA-NN folder
 RUN chmod +x /usr/diann-2.5.1/diann-linux

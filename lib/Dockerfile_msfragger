@@ -1,4 +1,13 @@
+FROM ubuntu:22.04 AS tool-provider
+
+# Install time and prepare clean binaries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    time \
+    && rm -rf /var/lib/apt/lists/*
+
+
 FROM eclipse-temurin:17-jre-jammy
+
 
 WORKDIR /opt/msfragger
 
@@ -7,6 +16,9 @@ WORKDIR /opt/msfragger
 # the container.
 COPY MSFragger/MSFragger-*.jar /opt/msfragger/msfragger.jar
 COPY MSFragger/ext /opt/msfragger/ext
+
+COPY --from=tool-provider /usr/bin/time /usr/bin/time
+COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
 
 # Optional convenience launcher.
 RUN printf '%s\n' \
