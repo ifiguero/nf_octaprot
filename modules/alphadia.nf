@@ -25,7 +25,7 @@ search:
   target_ms2_tolerance: 20
 
 library_prediction:
-  predict: true
+  enabled: true
   missed_cleavages: 2
 
 fdr:
@@ -35,10 +35,9 @@ general:
   thread_count: 8
 
 search_output:
-  file_format: "tsv" # or "parquet"
+  file_format: "tsv"
   precursor_level_lfq: true
   peptide_level_lfq: true
-
 EOF
 
     echo "[nf_alphadia_config] Configuration:"
