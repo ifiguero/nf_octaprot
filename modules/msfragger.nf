@@ -69,7 +69,7 @@ process MSFRAGGER_CONFIG {
 
 process MSFRAGGER_PSM {
     cpus 8
-    memory '64 GB'
+    memory '128 GB'
     maxForks 4
 
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
