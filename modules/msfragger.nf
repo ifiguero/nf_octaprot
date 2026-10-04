@@ -56,7 +56,7 @@ process MSFRAGGER_CONFIG {
     cat fragger.params
 
     echo "[nf_msfragger_db] Building MSFragger peptide index"
-    java -Xmx32g -jar /opt/msfragger/msfragger.jar fragger.params
+    /usr/bin/time -v -o runtime.tsv java -Xmx64g -jar /opt/msfragger/msfragger.jar fragger.params
     echo "[nf_msfragger_db] Index exit code: \$?"
 
     echo "[nf_msfragger_db] Database files:"

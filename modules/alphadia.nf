@@ -45,7 +45,7 @@ EOF
     cat alphadia.yaml
 
     echo "[nf_alphadia_config] generating Spectral Library:"
-    alphadia \
+    /usr/bin/time -v -o runtime.tsv alphadia \
         --config alphadia.yaml \
         --fasta "${fasta}" \
         --output report
