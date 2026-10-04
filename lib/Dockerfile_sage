@@ -1,13 +1,13 @@
-FROM ghcr.io/lazear/sage:latest
-
-USER root
+FROM debian:bullseye AS tool-provider
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends time && \
     rm -rf /var/lib/apt/lists/*
 
-# Replace this with the original user's name
-USER sage
+
+FROM ghcr.io/lazear/sage:latest
+
+COPY --from=tool-provider /usr/bin/time /usr/bin/time
 
 WORKDIR /opt/msfragger
 
