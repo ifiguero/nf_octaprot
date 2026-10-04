@@ -11,7 +11,7 @@ process ALPHADIA_CONFIG {
     output:
     tuple path("alphadia.yaml"),
           path(fasta),
-           path "report/speclib.hdf"
+           path("report/speclib.hdf")
 
     script:
     """
