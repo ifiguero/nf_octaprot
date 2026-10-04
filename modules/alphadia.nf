@@ -25,6 +25,7 @@ search:
   target_ms2_tolerance: 20
 
 library_prediction:
+  predict: true
   missed_cleavages: 2
 
 fdr:
