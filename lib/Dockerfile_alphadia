@@ -7,16 +7,19 @@ WORKDIR /src
 
 RUN git clone --depth 1 https://github.com/MannLabs/alphadia .
 
-FROM ubuntu:22.04 AS tool-provider
 
-# Install time and prepare clean binaries
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    time \
-    && rm -rf /var/lib/apt/lists/*
+# -------------------------------------------------------------------
+# Stage 2: Build compatible /usr/bin/time
+# -------------------------------------------------------------------
+FROM debian:bullseye AS tool-provider
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends time && \
+    rm -rf /var/lib/apt/lists/*
 
 
 # -------------------------------------------------------------------
-# Stage 2: Application image
+# Stage 3: Application image
 # -------------------------------------------------------------------
 FROM mosthege/pythonnet:python3.11.2-mono6.12-pythonnet3.0.1
 
@@ -35,7 +38,6 @@ WORKDIR /app
 #    --uid "${UID}" \
 #    alphadiauser
 
-# Copy the repository from the first stage
 COPY --from=repo /src/pyproject.toml pyproject.toml
 COPY --from=repo /src/docs docs
 COPY --from=repo /src/gui gui
@@ -43,11 +45,9 @@ COPY --from=repo /src/requirements requirements
 COPY --from=repo /src/alphadia alphadia
 COPY --from=repo /src/MANIFEST.in MANIFEST.in
 
-
 RUN pip install --no-cache-dir ".[stable]"
 
 COPY --from=tool-provider /usr/bin/time /usr/bin/time
-COPY --from=tool-provider /lib/*-linux-gnu*/ /lib/
 
 #USER alphadiauser
 
