@@ -20,21 +20,24 @@ process ALPHADIA_CONFIG {
     ls -lh ${fasta}
 
     cat > alphadia.yaml <<EOF
-fasta:
-  - ${fasta}
-
 search:
+  target_ms1_tolerance: 20
+  target_ms2_tolerance: 20
+
+library_prediction:
   missed_cleavages: 2
-  mass_acc: 20
-  mass_acc_ms1: 20
 
-output:
-  qvalue: 0.01
-  matrices: true
-  generate_speclib: true
+fdr:
+  fdr: 0.01
 
-runtime:
-  threads: 8
+general:
+  thread_count: 8
+
+search_output:
+  file_format: "tsv" # or "parquet"
+  precursor_level_lfq: true
+  peptide_level_lfq: true
+
 EOF
 
     echo "[nf_alphadia_config] Configuration:"
@@ -84,7 +87,7 @@ process ALPHADIA_PSM {
         --config "${alphadia_conf}" \
         --fasta "${fasta}" \
         --file "${mzml_gz.baseName}" \
-        --output report.tsv
+        --output report
 
     echo "[nf_alphadia] Output:"
     ls -lah

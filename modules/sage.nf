@@ -49,10 +49,10 @@ process SAGE_PSM {
         "fasta": "UP000005640_9606.fasta"
       },
       "precursor_tol": {
-        "ppm": 20.0
+        "ppm": [-20.0, 20.0]
       },
       "fragment_tol": {
-        "ppm": 20.0
+        "ppm": [-20.0, 20.0]
       },
       "enzyme": {
         "name": "trypsin",
