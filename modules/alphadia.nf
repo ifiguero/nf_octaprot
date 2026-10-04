@@ -1,7 +1,7 @@
 process ALPHADIA_CONFIG {
 
     cpus 8
-    memory '16 GB'
+    memory '128 GB'
 
     container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
@@ -10,7 +10,8 @@ process ALPHADIA_CONFIG {
 
     output:
     tuple path("alphadia.yaml"),
-          path(fasta)
+          path(fasta),
+           path "report/speclib.hdf"
 
     script:
     """
@@ -43,6 +44,12 @@ EOF
     echo "[nf_alphadia_config] Configuration:"
     cat alphadia.yaml
 
+    echo "[nf_alphadia_config] generating Spectral Library:"
+    alphadia \
+        --config alphadia.yaml \
+        --fasta "${fasta}" \
+        --output report
+
     echo "[nf_alphadia_config] Finish"
     """
 }
@@ -59,6 +66,7 @@ process ALPHADIA_PSM {
     input:
     tuple path(alphadia_conf),
           path(fasta),
+          path(speclib),
           path(mzml_gz)
 
     output:
@@ -85,7 +93,7 @@ process ALPHADIA_PSM {
 
     /usr/bin/time -v -o runtime.tsv alphadia \
         --config "${alphadia_conf}" \
-        --fasta "${fasta}" \
+        --library "${speclib}" \
         --file "${mzml_gz.baseName}" \
         --output report
 
