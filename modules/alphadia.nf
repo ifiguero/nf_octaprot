@@ -84,7 +84,6 @@ process ALPHADIA_PSM {
         --config "${alphadia_conf}" \
         --fasta "${fasta}" \
         --file "${mzml_gz.baseName}" \
-        --threads 8 \
         --output report.tsv
 
     echo "[nf_alphadia] Output:"

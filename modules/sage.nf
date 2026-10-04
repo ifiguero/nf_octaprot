@@ -44,26 +44,24 @@ process SAGE_PSM {
     gzip -dc "${mzml_gz}" > "${mzml_gz.baseName}"
 
     cat > sage.json <<EOF
-{
-    "database": {
-        "fasta": "${fasta}"
-    },
-    "precursor_tol": {
-        "value": 20.0,
-        "unit": "ppm"
-    },
-    "fragment_tol": {
-        "value": 20.0,
-        "unit": "ppm"
-    },
-    "enzyme": {
+    {
+      "database": {
+        "fasta": "UP000005640_9606.fasta"
+      },
+      "precursor_tol": {
+        "ppm": 20.0
+      },
+      "fragment_tol": {
+        "ppm": 20.0
+      },
+      "enzyme": {
         "name": "trypsin",
         "missed_cleavages": 2
-    },
-    "search": {
+      },
+      "search": {
         "generate_decoys": true
+      }
     }
-}
 EOF
 
     echo "[SAGE_PSM] Configuration:"
