@@ -58,8 +58,8 @@ EOF
 process ALPHADIA_PSM {
 
     cpus 8
-    memory '64 GB'
-    maxForks 4
+    memory '128 GB'
+    maxForks 3
 
     container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
