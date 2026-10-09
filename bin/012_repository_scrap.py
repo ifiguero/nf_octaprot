@@ -25,7 +25,7 @@ FILES_SCHEMA = {
     "table": "files",
     "description": "Discovered repository files",
     "columns": [
-        Column("id", "string"),
+        Column("replicate_id", "string"),
         Column("repository_id", "string", False),
         Column("remote_path", "string", False),
         Column("size_bytes", "int64"),
@@ -55,7 +55,7 @@ def polars_dtype(dtype: str) -> pl.DataType:
     try:
         return mapping[dtype]
     except KeyError:
-        fail(f"Unsupported schema dtype: {dtype}")
+        fail(f"Unsupported  dtype: {dtype}")
 
 def generate_sample_id(repository_id: str, remote_path: str) -> str:
     file_id = os.path.basename(remote_path).lower()
