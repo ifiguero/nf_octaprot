@@ -38,7 +38,7 @@ def scalar(value: Any) -> str | None:
     return str(value)
 
 
-def metadata_rows(spectrum: Any, basename: str, scan_number: int, last_ms1_scan: int,) -> list[dict[str, Any]]:
+def metadata_rows(spectrum: Any, replicate_id: str, scan_number: int, last_ms1_scan: int,) -> list[dict[str, Any]]:
 
     rows: list[dict[str, Any]] = []
     seen_accessions: set[str] = set(['MS:1000521', 'MS:1000515', 'MS:1000514', 'MS:1000574', 'MS:1000579', 'MS:1000580', 'MS:1000795'])
@@ -56,7 +56,7 @@ def metadata_rows(spectrum: Any, basename: str, scan_number: int, last_ms1_scan:
 
         rows.append(
             {
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": accession,
                 "name": cv.get("name"),
@@ -66,7 +66,7 @@ def metadata_rows(spectrum: Any, basename: str, scan_number: int, last_ms1_scan:
     if spectrum.ms_level == 2:
         rows.append(
             {
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": 'parent:ms1',
                 "name": 'Parent MS1 scan',
@@ -79,7 +79,7 @@ def metadata_rows(spectrum: Any, basename: str, scan_number: int, last_ms1_scan:
 
 def summarize_spectra(
     reader: Reader,
-    basename: str,
+    replicate_id: str,
     requested_ms_level: int,
 ) -> list[dict[str, Any]]:
     """
@@ -121,7 +121,7 @@ def summarize_spectra(
         rows.extend(
             metadata_rows(
                 spectrum=spectrum,
-                basename=basename,
+                replicate_id=replicate_id,
                 scan_number=scan_number,
                 last_ms1_scan=last_ms1_scan,
             )
@@ -133,7 +133,7 @@ def summarize_spectra(
             intensities = []
 
         rows.append({
-            "basename": basename,
+            "replicate_id": replicate_id,
             "scan_number": scan_number,
             "accession": "peak_count",
             "name": "Number of peaks on the scan",
@@ -141,21 +141,21 @@ def summarize_spectra(
         })
         if len(intensities)>0:
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_intensity:min",
                 "name": "Min Intensity",
                 "value": round(min(intensities),3),
             })
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_intensity:max",
                 "name": "Max Intensity",
                 "value": round(max(intensities),3),
             })
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_intensity:avg",
                 "name": "Average Intensity",
@@ -163,7 +163,7 @@ def summarize_spectra(
             })
             if len(intensities)>3:
                 rows.append({
-                    "basename": basename,
+                    "replicate_id": replicate_id,
                     "scan_number": scan_number,
                     "accession": "peak_intensity:median",
                     "name": "Median Intensity",
@@ -179,21 +179,21 @@ def summarize_spectra(
 
         if len(delta_mz)>0:
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_separation:min",
                 "name": "Min Separantion of peaks",
                 "value": round(min(delta_mz),3),
             })
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_separation:max",
                 "name": "Max Separantion of peaks",
                 "value": round(max(delta_mz),3),
             })
             rows.append({
-                "basename": basename,
+                "replicate_id": replicate_id,
                 "scan_number": scan_number,
                 "accession": "peak_separation:avg",
                 "name": "Avg Separantion of peaks",
@@ -201,7 +201,7 @@ def summarize_spectra(
             })
             if len(delta_mz)>3:
                 rows.append({
-                    "basename": basename,
+                    "replicate_id": replicate_id,
                     "scan_number": scan_number,
                     "accession": "peak_separation:median",
                     "name": "Median Separantion of peaks",
@@ -232,8 +232,8 @@ def process(input_path: Path, ms_level: int) -> Path:
             output = name[:-len(suffix)]
             break
 
-    basename = output
-    output_path = f"{basename}.parquet"
+    replicate_id = output
+    output_path = f"{replicate_id}.parquet"
 
     logger.info(
         "Reading %s for MS%d spectra metadata",
@@ -245,21 +245,21 @@ def process(input_path: Path, ms_level: int) -> Path:
 
     rows = summarize_spectra(
         reader=reader,
-        basename=basename,
+        replicate_id=replicate_id,
         requested_ms_level=ms_level,
     )
 
     df = pl.DataFrame(
         rows,
         schema={
-            "basename": pl.String,
+            "replicate_id": pl.String,
             "scan_number": pl.Int64,
             "accession": pl.String,
             "name": pl.String,
             "value": pl.String
         },
         strict=False
-    ).sort(["basename", "scan_number", "accession"]).unique(subset=["basename", "scan_number", "accession"], keep="first", maintain_order=True)
+    ).sort(["replicate_id", "scan_number", "accession"]).unique(subset=["replicate_id", "scan_number", "accession"], keep="first", maintain_order=True)
 
     df.write_parquet(
         output_path,
@@ -269,7 +269,7 @@ def process(input_path: Path, ms_level: int) -> Path:
     logger.info(
         "Wrote %d metadata rows for %d scans to %s",
         df.height,
-        df.select(["basename", "scan_number"]).unique().height,
+        df.select(["replicate_id", "scan_number"]).unique().height,
         output_path,
     )
 

@@ -42,7 +42,7 @@ def main() -> int:
     except Exception as exc:
         fail(f"Failed to read parquet: {exc}")
 
-    required_columns = {"id","repository_id","remote_path","size_bytes",}
+    required_columns = {"replicate_id","repository_id","remote_path","size_bytes",}
 
     missing = required_columns - set(df.columns)
 
@@ -57,7 +57,7 @@ def main() -> int:
     repository_id = repository_ids[0]
 
     samples_df = (
-        df.filter(pl.col("id").is_not_null())
+        df.filter(pl.col("replicate_id").is_not_null())
         .with_columns(
             [
                 pl.lit(None).cast(pl.String).alias("organism"),
@@ -72,11 +72,11 @@ def main() -> int:
         )
         .sort("remote_path")
         .select(
-            ["id", "organism", "source_type", "material", "condition", "sample_group", "size_bytes", "size", "remote_path"]
+            ["replicate_id", "organism", "source_type", "material", "condition", "sample_group", "size_bytes", "size", "remote_path"]
         )
     )
     other_df = (
-        df.filter(pl.col("id").is_null())
+        df.filter(pl.col("replicate_id").is_null())
         .with_columns(
             [
                 pl.col("size_bytes")

@@ -74,7 +74,7 @@ def get_replicates() -> pl.DataFrame:
     if df.is_empty():
         raise RuntimeError("Replicates table is empty or not present.")
 
-    required = {"id"}
+    required = {"replicate_id"}
     missing = required - set(df.columns)
 
     if missing:
@@ -91,7 +91,7 @@ def get_instrument_metadata() -> pl.DataFrame:
 
     The metadata structure used by the supplied code is:
 
-        basename
+        replicate_id
         accession
         value
 
@@ -104,12 +104,12 @@ def get_instrument_metadata() -> pl.DataFrame:
         logger.warning("Sample metadata table is empty.")
         return pl.DataFrame(
             schema={
-                "basename": pl.String,
+                "replicate_id": pl.String,
                 "instrument_name": pl.String,
             }
         )
 
-    required = {"basename", "accession", "value"}
+    required = {"replicate_id", "accession", "value"}
     missing = required - set(df.columns)
 
     if missing:
@@ -121,10 +121,10 @@ def get_instrument_metadata() -> pl.DataFrame:
     return (
         df.filter(pl.col("accession") == "info:instrument_name")
         .select(
-            pl.col("basename"),
+            pl.col("replicate_id"),
             pl.col("value").alias("instrument_name"),
         )
-        .unique(subset=["basename"], keep="first")
+        .unique(subset=["replicate_id"], keep="first")
     )
 
 
@@ -139,12 +139,12 @@ def get_sample_records() -> pl.DataFrame:
 
     samples = (
         replicates
-        .select("id")
+        .select("replicate_id")
         .unique()
         .join(
             instruments,
-            left_on="id",
-            right_on="basename",
+            left_on="replicate_id",
+            right_on="replicate_id",
             how="left",
         )
         .with_columns(
@@ -156,7 +156,7 @@ def get_sample_records() -> pl.DataFrame:
             .otherwise(pl.col("instrument_name").cast(pl.String))
             .alias("instrument_name")
         )
-        .sort("instrument_name", "id")
+        .sort("instrument_name", "replicate_id")
     )
 
     return samples
@@ -222,9 +222,9 @@ def create_combined_profile_plot(ms_level: int, output_file: Path,) -> Path:
     legend_handles = {}
 
     for sample in samples.iter_rows(named=True):
-        sample_id = sample["id"]
+        sample_id = sample["replicate_id"]
         instrument = sample["instrument_name"]
-        df = scans.filter(pl.col("ms_level") == ms_level, basename=sample_id)
+        df = scans.filter(pl.col("ms_level") == ms_level, replicate_id=sample_id)
 
         median = np.array(
             [

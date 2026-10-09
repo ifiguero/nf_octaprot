@@ -44,7 +44,7 @@ def numeric(value: Any) -> float | None:
 
 def add_value(
     rows: list[dict[str, Any]],
-    basename: str,
+    replicate_id: str,
     accession: str,
     name: str,
     value: Any,
@@ -52,7 +52,7 @@ def add_value(
 ) -> None:
     rows.append(
         {
-            "basename": basename,
+            "replicate_id": replicate_id,
             "accession": accession,
             "name": name,
             "value": scalar(value),
@@ -75,7 +75,7 @@ def cv_name(reader: Reader, accession: str, fallback: str | None = None) -> str:
 def extract_cv_params(
     element: ET.Element | None,
     reader: Reader,
-    basename: str,
+    replicate_id: str,
     group: str,
     rows: list[dict[str, Any]],
 ) -> None:
@@ -95,7 +95,7 @@ def extract_cv_params(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             accession,
             name,
             value,
@@ -105,7 +105,7 @@ def extract_cv_params(
 
 def extract_user_params(
     element: ET.Element | None,
-    basename: str,
+    replicate_id: str,
     group: str,
     rows: list[dict[str, Any]],
 ) -> None:
@@ -118,7 +118,7 @@ def extract_user_params(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             f"user:{group}:{name}",
             name,
             value,
@@ -129,17 +129,17 @@ def extract_user_params(
 def extract_element_metadata(
     element: ET.Element | None,
     reader: Reader,
-    basename: str,
+    replicate_id: str,
     group: str,
     rows: list[dict[str, Any]],
 ) -> None:
-    extract_cv_params(element, reader, basename, group, rows)
-    extract_user_params(element, basename, group, rows)
+    extract_cv_params(element, reader, replicate_id, group, rows)
+    extract_user_params(element, replicate_id, group, rows)
 
 
 def add_reader_info(
     reader: Reader,
-    basename: str,
+    replicate_id: str,
     rows: list[dict[str, Any]],
 ) -> None:
     excluded = {
@@ -160,7 +160,7 @@ def add_reader_info(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             f"info:{key}",
             key,
             value,
@@ -170,7 +170,7 @@ def add_reader_info(
 
 def add_stat(
     rows: list[dict[str, Any]],
-    basename: str,
+    replicate_id: str,
     prefix: str,
     values: list[float],
     group: str = "summary",
@@ -180,7 +180,7 @@ def add_stat(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         f"{group}:{prefix}_min",
         f"{prefix}_min",
         round(min(values),3),
@@ -189,7 +189,7 @@ def add_stat(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         f"{group}:{prefix}_max",
         f"{prefix}_max",
         round(max(values),3),
@@ -198,7 +198,7 @@ def add_stat(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         f"{group}:{prefix}_avg",
         f"{prefix}_avg",
         round(statistics.fmean(values),3),
@@ -208,7 +208,7 @@ def add_stat(
     if len(values) > 1:
         add_value(
             rows,
-            basename,
+            replicate_id,
             f"{group}:{prefix}_std",
             f"{prefix}_std",
             round(statistics.stdev(values),3),
@@ -218,7 +218,7 @@ def add_stat(
 
 def summarize_spectra(
     reader: Reader,
-    basename: str,
+    replicate_id: str,
     rows: list[dict[str, Any]],
 ) -> None:
     total_count = 0
@@ -385,7 +385,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:spectrum_count",
         "total_spectrum_count",
         total_count,
@@ -394,7 +394,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms1:spectrum_count",
         "ms1_spectrum_count",
         ms1_count,
@@ -403,7 +403,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:spectrum_count",
         "ms2_spectrum_count",
         ms2_count,
@@ -413,7 +413,7 @@ def summarize_spectra(
     if scan_times:
         add_value(
             rows,
-            basename,
+            replicate_id,
             "summary:first_scan_time_minutes",
             "first_scan_time_minutes",
             round(min(scan_times),3),
@@ -422,7 +422,7 @@ def summarize_spectra(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             "summary:last_scan_time_minutes",
             "last_scan_time_minutes",
             round(max(scan_times),3),
@@ -433,7 +433,7 @@ def summarize_spectra(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             "summary:total_run_time_seconds",
             "total_run_time_seconds",
             round(run_time*60, 3),
@@ -443,7 +443,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms1:mz_low_min",
         "ms1_mz_low_min",
         round(min(ms1_mz_low),3),
@@ -451,7 +451,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms1:mz_high_max",
         "ms1_mz_high_max",
         round(max(ms1_mz_high),3),
@@ -459,7 +459,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms1:mz_window_avg",
         "ms1_mz_window_avg",
         round(statistics.fmean(ms1_mz_window),3),
@@ -468,7 +468,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:mz_low_min",
         "ms2_mz_low_min",
         round(min(ms2_mz_low),3),
@@ -476,7 +476,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:mz_high_max",
         "ms2_mz_high_max",
         round(max(ms2_mz_high),3),
@@ -484,7 +484,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:mz_window_avg",
         "ms2_mz_window_avg",
         round(statistics.fmean(ms2_mz_window),3),
@@ -492,7 +492,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:isolation_lower_offset_min",
         "ms2_isolation_lower_offset_min",
         round(min(isolation_lower),3),
@@ -500,7 +500,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "ms2:isolation_upper_offset_max",
         "ms2_isolation_upper_offset_max",
         round(max(isolation_upper),3),
@@ -509,23 +509,23 @@ def summarize_spectra(
 
 
 
-    add_stat(rows, basename, "tic", total_ion_current, 'summary')
-    add_stat(rows, basename, "tic", ms1_tic, 'ms1')
-    add_stat(rows, basename, "tic", ms2_tic, 'ms2')
+    add_stat(rows, replicate_id, "tic", total_ion_current, 'summary')
+    add_stat(rows, replicate_id, "tic", ms1_tic, 'ms1')
+    add_stat(rows, replicate_id, "tic", ms2_tic, 'ms2')
 
-    add_stat(rows, basename, "precursor_mz", precursor_mz, 'summary')
-    add_stat(rows, basename, "collision_energy", collision_energy, 'ms2')
+    add_stat(rows, replicate_id, "precursor_mz", precursor_mz, 'summary')
+    add_stat(rows, replicate_id, "collision_energy", collision_energy, 'ms2')
 
-    add_stat(rows, basename, "isolation_target_mz", isolation_targets, 'ms2')
-    add_stat(rows, basename, "isolation_window", isolation_window, 'ms2')
+    add_stat(rows, replicate_id, "isolation_target_mz", isolation_targets, 'ms2')
+    add_stat(rows, replicate_id, "isolation_window", isolation_window, 'ms2')
 
-    add_stat(rows, basename, "peak_count", peak_count, 'summary')
-    add_stat(rows, basename, "peak_count", ms1_peak_count, 'ms1')
-    add_stat(rows, basename, "peak_count", ms2_peak_count, 'ms2')
+    add_stat(rows, replicate_id, "peak_count", peak_count, 'summary')
+    add_stat(rows, replicate_id, "peak_count", ms1_peak_count, 'ms1')
+    add_stat(rows, replicate_id, "peak_count", ms2_peak_count, 'ms2')
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_separation_min",
         "peak_separation_min",
         round(min(mz_delta_min),3),
@@ -533,7 +533,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_separation_max",
         "peak_separation_max",
         round(max(mz_delta_max),3),
@@ -542,7 +542,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_separation_avg",
         "peak_separation_avg",
         round(statistics.fmean(mz_delta_avg),3),
@@ -551,7 +551,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_separation_median",
         "peak_separation_median",
         round(statistics.fmean(mz_delta_median),3),
@@ -561,7 +561,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_intensity_min",
         "peak_intensity_min",
         round(min(peak_intensity_min),3),
@@ -569,7 +569,7 @@ def summarize_spectra(
     )
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_intensity_max",
         "peak_intensity_max",
         round(max(peak_intensity_max),3),
@@ -578,7 +578,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_intensity_avg",
         "peak_intensity_avg",
         round(statistics.fmean(peak_intensity_avg),3),
@@ -587,7 +587,7 @@ def summarize_spectra(
 
     add_value(
         rows,
-        basename,
+        replicate_id,
         "summary:peak_intensity_median",
         "peak_intensity_median",
         round(statistics.fmean(peak_intensity_median),3),
@@ -603,7 +603,7 @@ def summarize_spectra(
 
         add_value(
             rows,
-            basename,
+            replicate_id,
             "acquisition:type",
             "Heuristic adquisition",
             mode,
@@ -621,8 +621,8 @@ def process(input_path: Path) -> Path:
             output = name[:-len(suffix)]
             break
 
-    basename = output
-    output_path = f"{basename}.parquet"
+    replicate_id = output
+    output_path = f"{replicate_id}.parquet"
 
     logger.info("Reading %s", input_path)
 
@@ -631,14 +631,14 @@ def process(input_path: Path) -> Path:
 
     add_reader_info(
         reader,
-        basename,
+        replicate_id,
         rows,
     )
 
     extract_element_metadata(
         reader.info.get("file_description_element"),
         reader,
-        basename,
+        replicate_id,
         "file_description",
         rows,
     )
@@ -646,7 +646,7 @@ def process(input_path: Path) -> Path:
     extract_element_metadata(
         reader.info.get("instrument_configuration_list_element"),
         reader,
-        basename,
+        replicate_id,
         "instrument",
         rows,
     )
@@ -654,7 +654,7 @@ def process(input_path: Path) -> Path:
     extract_element_metadata(
         reader.info.get("data_processing_list_element"),
         reader,
-        basename,
+        replicate_id,
         "data_processing",
         rows,
     )
@@ -662,28 +662,28 @@ def process(input_path: Path) -> Path:
     extract_element_metadata(
         reader.info.get("run_element"),
         reader,
-        basename,
+        replicate_id,
         "run",
         rows,
     )
 
     summarize_spectra(
         reader,
-        basename,
+        replicate_id,
         rows,
     )
 
     df = pl.DataFrame(
         rows,
         schema={
-            "basename": pl.String,
+            "replicate_id": pl.String,
             "accession": pl.String,
             "name": pl.String,
             "value": pl.String,
             "group": pl.String,
         },
         strict=False,
-    ).sort(["basename", "group", "accession"]).unique(subset=["basename", "accession"], keep="first", maintain_order=True)
+    ).sort(["replicate_id", "group", "accession"]).unique(subset=["replicate_id", "accession"], keep="first", maintain_order=True)
 
     df.write_parquet(
         output_path,

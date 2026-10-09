@@ -27,13 +27,13 @@ def main() -> int:
     except Exception as exc:
         fail(f"Failed to read Parquet: {exc}")
 
-    if "id" not in df.columns:
-        fail("Missing required column: id")
+    if "replicate_id" not in df.columns:
+        fail("Missing required column: replicate_id")
 
     ids = (
-        df.select("id")
+        df.select("replicate_id")
         .drop_nulls()
-        .get_column("id")
+        .get_column("replicate_id")
         .to_list()
     )
 

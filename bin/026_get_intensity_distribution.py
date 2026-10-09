@@ -22,7 +22,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -> list[dict[str, Any]]:
+def summarize_spectra(reader: Reader, replicate_id: str, binning: str = "linear",) -> list[dict[str, Any]]:
     if binning not in {"linear", "percentile"}:
         raise ValueError(f"Unsupported binning mode {binning!r}; expected 'linear' or 'percentile'")
 
@@ -64,7 +64,7 @@ def summarize_spectra(reader: Reader, basename: str, binning: str = "linear",) -
             max_mz = None
 
         row: dict[str, Any] = {
-            "basename": basename,
+            "replicate_id": replicate_id,
             "scan_number": int(scan_number),
             "ms_level": ms_level,
             "peaks": len(intensities),
@@ -145,8 +145,8 @@ def process(input_path: Path, binning: str) -> Path:
             output = name[:-len(suffix)]
             break
 
-    basename = output
-    output_path = f"{basename}.parquet"
+    replicate_id = output
+    output_path = f"{replicate_id}.parquet"
 
     logger.info(
         "Reading %s for %s binning of MS spectra metadata",
@@ -158,14 +158,14 @@ def process(input_path: Path, binning: str) -> Path:
 
     rows = summarize_spectra(
         reader=reader,
-        basename=basename,
+        replicate_id=replicate_id,
         binning=binning,
     )
 
-    sample_keys = rows[0].keys() if rows else ["basename", "scan_number", "ms_level", "min_mz", "max_mz", "min_int", "max_int"]
+    sample_keys = rows[0].keys() if rows else ["replicate_id", "scan_number", "ms_level", "min_mz", "max_mz", "min_int", "max_int"]
     schema = {}
     for key in sample_keys:
-        if key in ["basename"]:
+        if key in ["replicate_id"]:
             schema[key] = pl.String
         elif key in ["scan_number", "ms_level"]:
             schema[key] = pl.Int32
@@ -180,7 +180,7 @@ def process(input_path: Path, binning: str) -> Path:
         rows,
         schema=schema,
         strict=False
-    ).sort(["basename", "scan_number"]).unique(subset=["basename", "scan_number"], keep="first", maintain_order=True)
+    ).sort(["replicate_id", "scan_number"]).unique(subset=["replicate_id", "scan_number"], keep="first", maintain_order=True)
 
     df.write_parquet(
         output_path,
@@ -190,7 +190,7 @@ def process(input_path: Path, binning: str) -> Path:
     logger.info(
         "Wrote %d metadata rows for %d scans to %s",
         df.height,
-        df.select(["basename", "scan_number"]).unique().height,
+        df.select(["replicate_id", "scan_number"]).unique().height,
         output_path,
     )
 

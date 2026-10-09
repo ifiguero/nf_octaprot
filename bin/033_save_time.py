@@ -42,14 +42,14 @@ def parse_time_output(path: Path) -> dict[str, any]:
     return data
 
 
-def process(sample_id: str, filename: Path) -> pl.DataFrame:
+def process(replicate_id: str, filename: Path) -> pl.DataFrame:
     """Processes the raw time file and returns a strongly-typed DataFrame."""
     parsed_data = parse_time_output(filename)
-    parsed_data["sample_id"] = sample_id
+    parsed_data["replicate_id"] = replicate_id
 
     # Define strict schema for Parquet joining purposes
     schema = {
-        "sample_id": pl.String,
+        "replicate_id": pl.String,
         "command": pl.String,
         "user_time_seconds": pl.Float64,
         "system_time_seconds": pl.Float64,

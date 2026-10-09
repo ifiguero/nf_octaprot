@@ -228,7 +228,7 @@ def build_output_dataframe(repository_id: str, files_list: list[dict]) -> pl.Dat
         if size > LARGE_FILE_THRESHOLD and is_valid_sample_filename(item["remote_path"]):
             rows.append(
                 {
-                    "id": generate_sample_id(repository_id, item["remote_path"]),
+                    "replicate_id": generate_sample_id(repository_id, item["remote_path"]),
                     "repository_id": repository_id,
                     "remote_path": item["remote_path"],
                     "size_bytes": size,
@@ -238,7 +238,7 @@ def build_output_dataframe(repository_id: str, files_list: list[dict]) -> pl.Dat
         else:
             rows.append(
                 {
-                    "id": None,
+                    "replicate_id": None,
                     "repository_id": repository_id,
                     "remote_path": item["remote_path"],
                     "size_bytes": size,

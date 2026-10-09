@@ -56,7 +56,7 @@ FILES_SCHEMA = {
     "table": "files",
     "description": "Discovered repository files",
     "columns": [
-        Column("id", "string"),
+        Column("replicate_id", "string"),
         Column("repository_id", "string", False),
         Column("remote_path", "string", False),
         Column("size_bytes", "int64"),
@@ -109,9 +109,9 @@ def load_sample(sample_id: str) -> dict:
     df = load_table("files")
 
     row = (
-        df.filter(pl.col("id") == sample_id)
+        df.filter(pl.col("replicate_id") == sample_id)
           .select(
-              "id",
+              "replicate_id",
               "repository_id",
               "remote_path",
               "size_bytes",
@@ -222,11 +222,11 @@ def download_sample(sample, basepath='stage'):
         try:
             with open_ftp(ftp_info) as ftp:
                 if sample["remote_path"].lower().endswith(".d"):
-                    output_path = basepath / 'raw' / f"{sample['id']}.d"
+                    output_path = basepath / 'raw' / f"{sample['replicate_id']}.d"
                     download_directory(ftp, sample["remote_path"], output_path )
 
                 else:
-                    output_path = basepath / 'raw' / output_name(sample["id"], sample["remote_path"])
+                    output_path = basepath / 'raw' / output_name(sample["replicate_id"], sample["remote_path"])
                     download_file(ftp, sample["remote_path"], output_path)
                     if sample["remote_path"].lower().endswith(".wiff") and ftp.path.exists(f"{sample["remote_path"]}.scan"):
                         output_path_scan = output_path.parent / (output_path.name + ".scan")

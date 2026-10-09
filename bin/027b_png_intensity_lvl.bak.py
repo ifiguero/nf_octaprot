@@ -49,9 +49,9 @@ def load_table(table_name: str) -> pl.DataFrame:
         how="diagonal_relaxed",
     )
 
-def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> str:
+def get_accession(metadata_df: pl.DataFrame, accession: str, replicate_id: str) -> str:
     df_search = (
-        metadata_df.filter(pl.col("basename") == basename, pl.col('accession') == accession )
+        metadata_df.filter(pl.col("replicate_id") == replicate_id, pl.col('accession') == accession )
           .select("value")
     )
     if df_search.height != 1:
@@ -59,12 +59,12 @@ def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> s
 
     return df_search.item()
 
-def get_sample_metadata(sample_id: str) -> dict:
+def get_sample_metadata(replicate_id: str) -> dict:
 
     df_replicate = (
         load_table("replicates")
-        .filter(pl.col("id") == sample_id)
-        .select("id", "organism", "source_type", "material")
+        .filter(pl.col("replicate_id") == replicate_id)
+        .select("replicate_id", "organism", "source_type", "material")
     )
 
     if df_replicate.height != 1:
@@ -74,13 +74,13 @@ def get_sample_metadata(sample_id: str) -> dict:
 
     df_metadata = load_table("sample_metadata")
 
-    sample['dia'] = get_accession(df_metadata, 'acquisition:type', sample_id )
-    sample['window_size'] = get_accession(df_metadata, 'ms2:isolation_window_avg', sample_id )
-    sample['instrument_name'] = get_accession(df_metadata, 'info:instrument_name', sample_id )
+    sample['dia'] = get_accession(df_metadata, 'acquisition:type', replicate_id )
+    sample['window_size'] = get_accession(df_metadata, 'ms2:isolation_window_avg', replicate_id )
+    sample['instrument_name'] = get_accession(df_metadata, 'info:instrument_name', replicate_id )
 
-    sample['ms1_spectrum_count'] = get_accession(df_metadata, 'ms1:spectrum_count', sample_id )
-    sample['ms2_spectrum_count'] = get_accession(df_metadata, 'ms2:spectrum_count', sample_id )
-    sample['total_spectrum_count'] = get_accession(df_metadata, 'info:spectrum_count', sample_id )
+    sample['ms1_spectrum_count'] = get_accession(df_metadata, 'ms1:spectrum_count', replicate_id )
+    sample['ms2_spectrum_count'] = get_accession(df_metadata, 'ms2:spectrum_count', replicate_id )
+    sample['total_spectrum_count'] = get_accession(df_metadata, 'info:spectrum_count', replicate_id )
 
     return sample
 
@@ -93,8 +93,8 @@ def create_scan_summary_png(
         raise ValueError("binning must be either 'linear' or 'percentile'")
 
     parquet_file = Path(parquet_file)
-    basename = Path(parquet_file).stem
-    output_file = Path(f"{basename}.png")
+    replicate_id = Path(parquet_file).stem
+    output_file = Path(f"{replicate_id}.png")
 
     df = (
         pl.scan_parquet(parquet_file)
@@ -104,7 +104,7 @@ def create_scan_summary_png(
 
     if df.is_empty():
         raise ValueError(
-            f"No rows found for basename={basename!r} in {parquet_file}"
+            f"No rows found for replicate_id={replicate_id!r} in {parquet_file}"
         )
 
     # ------------------------------------------------------------------
@@ -186,7 +186,7 @@ def create_scan_summary_png(
         ax.set_xlabel("Intensity bin")
         ax.set_ylabel("peak count")
         ax.set_title(
-            f"Scan histogram summary — {basename}"
+            f"Scan histogram summary — {replicate_id}"
             f"{title}"
             f"Log binning"
         )
@@ -340,7 +340,7 @@ def create_scan_summary_png(
             ax.set_xlabel("Percentile")
             ax.set_ylabel("log10(intensity)")
             ax.set_title(
-                f"Scan percentile summary — {basename}"
+                f"Scan percentile summary — {replicate_id}"
                 f"{title}"
                 f"Median and IQR across scans"
             )

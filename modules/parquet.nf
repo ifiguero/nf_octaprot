@@ -14,6 +14,37 @@ process LOAD_REPLICATES {
     """
 }
 
+process LIST_DIA_REPLICATES {
+
+    input:
+    path parquet
+
+    output:
+    stdout
+
+    script:
+    """
+    export SILVER_DIR="${params.silver_dir}"
+    031_get_replicates.py dia ${parquet}
+    """
+}
+
+process LIST_DDA_REPLICATES {
+
+    input:
+    path parquet
+
+    output:
+    stdout
+
+    script:
+    """
+    export SILVER_DIR="${params.silver_dir}"
+    031_get_replicates.py dda ${parquet}
+    """
+}
+
+
 process LIST_REPLICATES {
 
     input:

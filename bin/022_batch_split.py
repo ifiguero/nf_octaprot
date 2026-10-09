@@ -27,7 +27,7 @@ REPLICATES_SCHEMA = {
     "table": "replicates",
     "description": "Input dataset",
     "columns": [
-        Column("id", "string", False),
+        Column("replicate_id", "string", False),
         Column("organism", "string", False),
         Column("source_type", "string", False),
         Column("material", "string", False),
@@ -73,11 +73,10 @@ def load_files_table() -> pl.DataFrame:
 
     return (
         pl.scan_parquet(str(FILES_GLOB))
-        .filter(pl.col("id").is_not_null() & (pl.col("id").str.strip_chars() != ""))
-        .select(["id", "size_bytes"])
+        .filter(pl.col("replicate_id").is_not_null() & (pl.col("replicate_id").str.strip_chars() != ""))
+        .select(["replicate_id", "size_bytes"])
         .collect()
     )
-
 
 
 def assign_splits(df: pl.DataFrame) -> pl.DataFrame:
@@ -162,7 +161,7 @@ def main() -> int:
 
     joined = replicates.join(
         files,
-        on="id",
+        on="replicate_id",
         how="inner",
     )
 

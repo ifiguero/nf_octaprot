@@ -49,9 +49,9 @@ def load_table(table_name: str) -> pl.DataFrame:
         how="diagonal_relaxed",
     )
 
-def get_accession(metadata_df: pl.DataFrame, accession: str, basename: str) -> str:
+def get_accession(metadata_df: pl.DataFrame, accession: str, replicate_id: str) -> str:
     df_search = (
-        metadata_df.filter(pl.col("basename") == basename, pl.col('accession') == accession )
+        metadata_df.filter(pl.col("replicate_id") == replicate_id, pl.col('accession') == accession )
           .select("value")
     )
     if df_search.height != 1:
@@ -63,8 +63,8 @@ def get_sample_metadata(sample_id: str) -> dict:
 
     df_replicate = (
         load_table("replicates")
-        .filter(pl.col("id") == sample_id)
-        .select("id", "organism", "source_type", "material")
+        .filter(pl.col("replicate_id") == sample_id)
+        .select("replicate_id", "organism", "source_type", "material")
     )
 
     if df_replicate.height != 1:
@@ -93,8 +93,8 @@ def create_scan_summary_png(
         raise ValueError("binning must be either 'linear' or 'percentile'")
 
     parquet_file = Path(parquet_file)
-    basename = Path(parquet_file).stem
-    output_file = Path(f"{basename}.png")
+    replicate_id = Path(parquet_file).stem
+    output_file = Path(f"{replicate_id}.png")
 
     df = (
         pl.scan_parquet(parquet_file)
@@ -104,7 +104,7 @@ def create_scan_summary_png(
 
     if df.is_empty():
         raise ValueError(
-            f"No rows found for basename={basename!r} in {parquet_file}"
+            f"No rows found for replicate_id={replicate_id!r} in {parquet_file}"
         )
 
     # ------------------------------------------------------------------
@@ -186,7 +186,7 @@ def create_scan_summary_png(
         ax.set_xlabel("Intensity bin")
         ax.set_ylabel("peak count")
         ax.set_title(
-            f"Scan histogram summary — {basename}"
+            f"Scan histogram summary — {replicate_id}"
             f"{title}"
             f"Log binning"
         )
@@ -340,7 +340,7 @@ def create_scan_summary_png(
             ax.set_xlabel("Percentile")
             ax.set_ylabel("log10(intensity)")
             ax.set_title(
-                f"Scan percentile summary — {basename}"
+                f"Scan percentile summary — {replicate_id}"
                 f"{title}"
                 f"Median and IQR across scans"
             )

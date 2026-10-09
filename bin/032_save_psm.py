@@ -19,7 +19,7 @@ TABLE_TO_PARQUET = {
 SOFTWARE = ("msfragger", "sage", "alphadia", "diann")
 
 PSM_COLUMNS = [
-    "sample_id",
+    "replicate_id",
     "peptide",
     "charge",
     "software",
@@ -29,11 +29,11 @@ PSM_COLUMNS = [
 ]
 
 
-def load_scan_rt_table(sample_id: str) -> pl.DataFrame:
+def load_scan_rt_table(replicate_id: str) -> pl.DataFrame:
     tables = []
 
     for table_name, root in TABLE_TO_PARQUET.items():
-        path = root / f"{sample_id}.parquet"
+        path = root / f"{replicate_id}.parquet"
 
         if path.exists():
             df = pl.read_parquet(path)
@@ -43,7 +43,7 @@ def load_scan_rt_table(sample_id: str) -> pl.DataFrame:
                 continue
 
             tables.append(
-                df.filter(pl.col("accession").cast(pl.String) == "MS:1000016", pl.col("basename").cast(pl.String) == sample_id)
+                df.filter(pl.col("accession").cast(pl.String) == "MS:1000016", pl.col("replicate_id").cast(pl.String) == replicate_id)
                 .select(
                     pl.col("scan_number").cast(pl.Int64, strict=False),
                     pl.col("value")
@@ -54,7 +54,7 @@ def load_scan_rt_table(sample_id: str) -> pl.DataFrame:
 
     if not tables:
         raise FileNotFoundError(
-            f"No usable scan metadata found for sample {sample_id!r} "
+            f"No usable scan metadata found for sample {replicate_id!r} "
             f"under {SILVER_ROOT}"
         )
 
@@ -67,7 +67,7 @@ def load_scan_rt_table(sample_id: str) -> pl.DataFrame:
 
     if scan_rt.is_empty():
         raise ValueError(
-            f"No MS:1000016 retention-time entries found for {sample_id!r}"
+            f"No MS:1000016 retention-time entries found for {replicate_id!r}"
         )
 
     return scan_rt
@@ -88,14 +88,14 @@ def empty_scan() -> pl.Expr:
     return pl.lit(None, dtype=pl.Int64)
 
 
-def parse_msfragger(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
+def parse_msfragger(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
     require(
         df,
         ["scannum", "retention_time", "charge", "peptide", "expectscore"],
     )
 
     return df.select(
-        pl.lit(sample_id).alias("sample_id"),
+        pl.lit(replicate_id).alias("replicate_id"),
         pl.col("peptide").cast(pl.String),
         number("charge", pl.Int16).alias("charge"),
         pl.lit("msfragger").alias("software"),
@@ -105,11 +105,11 @@ def parse_msfragger(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
     )
 
 
-def parse_sage(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
+def parse_sage(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
     require(df, ["scannr", "rt", "charge", "peptide", "posterior_error"])
 
     return df.select(
-        pl.lit(sample_id).alias("sample_id"),
+        pl.lit(replicate_id).alias("replicate_id"),
         pl.col("peptide").cast(pl.String),
         number("charge", pl.Int16).alias("charge"),
         pl.lit("sage").alias("software"),
@@ -119,7 +119,7 @@ def parse_sage(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
     )
 
 
-def parse_alphadia(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
+def parse_alphadia(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
     require(
         df,
         [
@@ -131,7 +131,7 @@ def parse_alphadia(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
     )
 
     return df.select(
-        pl.lit(sample_id).alias("sample_id"),
+        pl.lit(replicate_id).alias("replicate_id"),
         pl.col("precursor.sequence").cast(pl.String).alias("peptide"),
         number("precursor.charge", pl.Int16).alias("charge"),
         pl.lit("alphadia").alias("software"),
@@ -141,14 +141,14 @@ def parse_alphadia(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
     )
 
 
-def parse_diann(df: pl.DataFrame, sample_id: str) -> pl.DataFrame:
+def parse_diann(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
     require(
         df,
         ["Modified.Sequence", "Precursor.Charge", "RT", "PEP"],
     )
 
     return df.select(
-        pl.lit(sample_id).alias("sample_id"),
+        pl.lit(replicate_id).alias("replicate_id"),
         pl.col("Modified.Sequence").cast(pl.String).alias("peptide"),
         number("Precursor.Charge", pl.Int16).alias("charge"),
         pl.lit("diann").alias("software"),
@@ -264,7 +264,7 @@ def normalize(psm: pl.DataFrame, scan_rt: pl.DataFrame) -> pl.DataFrame:
         )
 
     return psm.select(
-        pl.col("sample_id").cast(pl.String),
+        pl.col("replicate_id").cast(pl.String),
         pl.col("peptide").cast(pl.String),
         pl.col("charge").cast(pl.Int16, strict=False),
         pl.col("software").cast(pl.String),
@@ -275,7 +275,7 @@ def normalize(psm: pl.DataFrame, scan_rt: pl.DataFrame) -> pl.DataFrame:
 
 
 def process(
-    sample_id: str,
+    replicate_id: str,
     results_file: str,
     software: str
 ) -> pl.DataFrame:
@@ -290,9 +290,9 @@ def process(
         "diann": parse_diann,
     }
 
-    raw_data = routines[software](source, sample_id)
+    raw_data = routines[software](source, replicate_id)
 
-    scan_rt = load_scan_rt_table(sample_id)
+    scan_rt = load_scan_rt_table(replicate_id)
 
     normalized_data = normalize(raw_data, scan_rt)
 
