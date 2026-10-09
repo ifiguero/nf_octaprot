@@ -1,32 +1,20 @@
+
 #!/usr/bin/env -S uv run --with polars python3
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os
 from pathlib import Path
 import sys
 
 import polars as pl
 
 
-@dataclass(frozen=True)
-class Column:
-    name: str
-    dtype: str
-    nullable: bool = True
+SILVER_ROOT = Path(os.environ["SILVER_DIR"])
 
-
-REPLICATES_SCHEMA = {
-    "table": "replicates",
-    "description": "Input dataset",
-    "columns": [
-        Column("replicate_id", "string", False),
-        Column("organism", "string", False),
-        Column("source_type", "string", False),
-        Column("material", "string", False),
-        Column("condition", "string", False),
-        Column("sample_group", "string", False),
-    ],
+TABLE_TO_PARQUET = {
+    "sample_metadata": SILVER_ROOT / "sample_metadata",
+    "replicates": SILVER_ROOT / "replicates",
 }
 
 
@@ -35,100 +23,102 @@ def fail(message: str) -> None:
     sys.exit(1)
 
 
-def polars_dtype(dtype: str) -> pl.DataType:
-    mapping = {
-        "string": pl.Utf8,
-        "int32": pl.Int32,
-    }
+def load_table(table_name: str) -> pl.DataFrame:
+    parquet_root = TABLE_TO_PARQUET[table_name]
 
-    try:
-        return mapping[dtype]
-    except KeyError:
-        fail(f"Unsupported schema dtype: {dtype}")
+    if not parquet_root.exists():
+        return pl.DataFrame()
+
+    parquet_files = sorted(parquet_root.rglob("*.parquet"))
+    if not parquet_files:
+        return pl.DataFrame()
+
+    return pl.concat(
+        [pl.read_parquet(path) for path in parquet_files],
+        how="diagonal_relaxed",
+    )
+
+
+def get_acquisition(
+    metadata_df: pl.DataFrame,
+    replicate_id: str,
+) -> str | None:
+    if metadata_df.is_empty():
+        return None
+
+    required_columns = {"replicate_id", "accession", "value"}
+    if not required_columns.issubset(metadata_df.columns):
+        return None
+
+    result = (
+        metadata_df
+        .filter(
+            (pl.col("replicate_id") == replicate_id)
+            & (pl.col("accession") == "acquisition:type")
+        )
+        .select("value")
+    )
+
+    if result.height != 1:
+        return None
+
+    return result.item()
 
 
 def main() -> int:
-    if len(sys.argv) != 2:
-        fail(f"Usage: {Path(sys.argv[0]).name} <replicates.csv>")
+    if len(sys.argv) != 3:
+        fail(
+            f"Usage: {Path(sys.argv[0]).name} [dia|dda] <replicates.parquet>"
+        )
 
-    csv_path = Path(sys.argv[1])
+    mode = sys.argv[1].lower()
+    parquet_path = Path(sys.argv[2])
 
-    if not csv_path.exists():
-        fail(f"Input file does not exist: {csv_path}")
+    if mode not in {"dia", "dda"}:
+        fail("Mode must be 'dia' or 'dda'")
 
-    columns = REPLICATES_SCHEMA["columns"]
-
-    required_columns = [c.name for c in columns]
-    non_nullable_columns = [c.name for c in columns if not c.nullable]
+    if not parquet_path.is_file():
+        fail(f"Input file does not exist: {parquet_path}")
 
     try:
-        df = pl.read_csv(csv_path)
+        df = pl.read_parquet(parquet_path)
     except Exception as exc:
-        fail(f"Failed to read CSV: {exc}")
+        fail(f"Failed to read Parquet: {exc}")
 
-    missing_columns = sorted(set(required_columns) - set(df.columns))
-    if missing_columns:
-        fail(f"Missing required columns: {', '.join(missing_columns)}")
-
-    df = df.select(required_columns)
+    if "replicate_id" not in df.columns:
+        fail("Missing required column: replicate_id")
 
     try:
-        df = df.cast(
-            {
-                c.name: polars_dtype(c.dtype)
-                for c in columns
-            },
-            strict=True,
-        )
+        metadata_df = load_table("sample_metadata")
     except Exception as exc:
-        fail(f"Schema validation failed: {exc}")
+        fail(f"Failed to load sample_metadata: {exc}")
 
-    if df.height == 0:
-        fail("CSV contains no rows")
+    if metadata_df.is_empty():
+        fail("sample_metadata table is empty or does not exist")
 
-    null_counts = (
-        df.select(
-            [pl.col(col).null_count().alias(col) for col in required_columns]
+    if not {"replicate_id", "accession", "value"}.issubset(
+        metadata_df.columns
+    ):
+        fail(
+            "sample_metadata must contain replicate_id, accession, and value"
         )
-        .row(0, named=True)
+
+    ids = (
+        df.select("replicate_id")
+        .drop_nulls()
+        .unique()
+        .get_column("replicate_id")
+        .to_list()
     )
 
-    columns_with_nulls = [
-        col for col, count in null_counts.items()
-        if count > 0
-    ]
+    if not ids:
+        fail("No replicate ids found")
 
-    if columns_with_nulls:
-        fail(
-            "Null values found in required columns: "
-            + ", ".join(columns_with_nulls)
-        )
+    for replicate_id in ids:
+        acquisition = get_acquisition(metadata_df, replicate_id)
 
-    for col in non_nullable_columns:
-        if df.filter(pl.col(col).is_null()).height > 0:
-            fail(f"Missing values found in required column: {col}")
-
-        if df.schema[col] == pl.Utf8:
-            empty_count = (
-                df.filter(pl.col(col).str.strip_chars() == "")
-                .height
-            )
-            if empty_count > 0:
-                fail(f"Empty values found in required column: {col}")
-
-    if df.height != df.unique(subset=["replicate_id"]).height:
-        duplicate_ids = (
-            df.group_by("replicate_id")
-            .len()
-            .filter(pl.col("len") > 1)
-            .get_column("replicate_id")
-            .to_list()
-        )
-        fail(f"Duplicate replicate ids detected: {duplicate_ids}")
-
-    output_path = csv_path.with_suffix(".parquet")
-
-    df.write_parquet(output_path)
+        if acquisition is not None and acquisition.strip().lower() == mode:
+            print(replicate_id)
 
     return 0
 
