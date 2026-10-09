@@ -85,7 +85,7 @@ def build_dataset() -> pl.DataFrame:
     file_columns = [
         c
         for c in (
-            "id",
+            "replicate_id",
             "repository_id",
             "size_bytes",
         )
@@ -96,7 +96,7 @@ def build_dataset() -> pl.DataFrame:
 
     return replicates.join(
         files,
-        on="id",
+        on="replicate_id",
         how="inner",
     )
 
