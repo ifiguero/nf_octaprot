@@ -1,4 +1,4 @@
-include { LIST_REPLICATES } from '../modules/parquet.nf'
+include { LIST_DDA_REPLICATES; LIST_DIA_REPLICATES } from '../modules/parquet.nf'
 include { SAGE_SAVE_PSM; DIANN_SAVE_PSM; ALPHADIA_SAVE_PSM; MSFRAGGER_SAVE_PSM } from '../modules/parquet-psm.nf'
 include { SAGE_SAVE_RUNTIME; DIANN_SAVE_RUNTIME; ALPHADIA_SAVE_RUNTIME; MSFRAGGER_SAVE_RUNTIME } from '../modules/parquet-psm.nf'
 include { MSFRAGGER_CONFIG; MSFRAGGER_PSM } from '../modules/msfragger.nf'
@@ -12,13 +12,20 @@ workflow WORKFLOW_SEARCH {
     fasta_files = Channel.fromPath(params.input_fasta)
 
     replicates_ch = Channel.fromPath("${params.silver_dir}/replicates/*.parquet")
-    mzml_gz_ch = LIST_REPLICATES(replicates_ch).splitText().map { it.trim() }.filter { it }.map { id -> tuple(id, file("${params.bronze_dir}/${id}.mzML.gz")) }
+    mzml_gz_dia = LIST_DIA_REPLICATES(replicates_ch).splitText().map { it.trim() }.filter { it }.map { id -> tuple(id, file("${params.bronze_dir}/${id}.mzML.gz")) }
+    mzml_gz_dda = LIST_DDA_REPLICATES(replicates_ch).splitText().map { it.trim() }.filter { it }.map { id -> tuple(id, file("${params.bronze_dir}/${id}.mzML.gz")) }
 
 
-    MSFRAGGER_SEARCH(fasta_files, mzml_gz_ch)
-    DIANN_SEARCH(fasta_files, mzml_gz_ch)
-    SAGE_SEARCH(fasta_files, mzml_gz_ch)
-    ALPHADIA_SEARCH(fasta_files, mzml_gz_ch)
+    MSFRAGGER_SEARCH(fasta_files, mzml_gz_dia)
+    DIANN_SEARCH(fasta_files, mzml_gz_dia)
+    SAGE_SEARCH(fasta_files, mzml_gz_dia)
+    ALPHADIA_SEARCH(fasta_files, mzml_gz_dia)
+
+
+    MSFRAGGER_SEARCH(fasta_files, mzml_gz_dda)
+    DIANN_SEARCH(fasta_files, mzml_gz_dda)
+    SAGE_SEARCH(fasta_files, mzml_gz_dda)
+//    ALPHADIA_SEARCH(fasta_files, mzml_gz_dda)
 
 }
 
