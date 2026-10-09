@@ -38,10 +38,13 @@ process DIANN_PSM {
     input:
     tuple path(fasta),
           path(speclib),
+          val(id),
           path(mzml_gz)
 
     output:
-    path "*.tsv"
+    tuple val(id),
+          path("${id}.parquet"),
+          path("${id}.runtime.tsv")
 
     script:
     """
@@ -61,7 +64,7 @@ process DIANN_PSM {
 
     echo "[nf_diann] Running DIA-NN"
 
-    /usr/bin/time -v -o runtime.tsv diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}"  --out "${mzml_gz.getBaseName(2)}.tsv"
+    /usr/bin/time -v -o "${id}.runtime.tsv" diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}" # --out "${id}_results.tsv"
 
     echo "[nf_diann] Exit code: \$?"
 

@@ -26,10 +26,13 @@ process SAGE_PSM {
 
     input:
     tuple path(fasta),
+          val(id),
           path(mzml_gz)
 
     output:
-    path "*.tsv"
+    tuple val(id),
+          path("${id}.results.tsv"),
+          path("${id}.runtime.tsv")
 
     script:
     """
@@ -69,14 +72,15 @@ EOF
 
     echo "[SAGE_PSM] Running Sage"
 
-    /usr/bin/time -v -o runtime.tsv sage sage.json "${mzml_gz.baseName}" \
+    /usr/bin/time -v -o "${id}.runtime.tsv" sage sage.json "${mzml_gz.baseName}" \
         --fasta "${fasta}" \
         --output_directory .
 
-    echo "[SAGE_PSM] Output:"
-    ls -lah
-
+    echo "[SAGE_PSM] Cleanup"
     rm -f "${mzml_gz.baseName}"
+
+    echo "[SAGE_PSM] Rename Output:"
+    mv results.sage.tsv "${id}.results.tsv"
 
     echo "[SAGE_PSM] Finish"
     """

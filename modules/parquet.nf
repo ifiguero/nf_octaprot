@@ -1,3 +1,75 @@
+process SAVE_SAGE_PSM {
+    publishDir "${params.silver_dir}/psm/sage", mode: 'copy', overwrite: true
+
+    input:
+    tuple val(id),
+          path(results),
+          path(runtime)
+
+    output:
+    path ("${id}.parquet")
+
+    script:
+    """
+    032_save_psm.py --sage ${id} ${results}
+    """
+}
+
+
+process SAVE_DIANN_PSM {
+    publishDir "${params.silver_dir}/psm/diann", mode: 'copy', overwrite: true
+
+    input:
+    tuple val(id),
+          path(results),
+          path(runtime)
+
+    output:
+    path ("${id}.parquet")
+
+    script:
+    """
+    032_save_psm.py --diann ${id} ${results}
+    """
+}
+
+
+process SAVE_MSFRAGGER_PSM {
+    publishDir "${params.silver_dir}/psm/msfragger", mode: 'copy', overwrite: true
+
+    input:
+    tuple val(id),
+          path(results),
+          path(runtime)
+
+    output:
+    path ("${id}.parquet")
+
+    script:
+    """
+    032_save_psm.py --msfragger ${id} ${results}
+    """
+}
+
+
+process SAVE_ALPHADIA_PSM {
+    publishDir "${params.silver_dir}/psm/alphadia", mode: 'copy', overwrite: true
+
+    input:
+    tuple val(id),
+          path(results),
+          path(runtime)
+
+    output:
+    path ("${id}.parquet")
+
+    script:
+    """
+    032_save_psm.py --alphadia ${id} ${results}
+    """
+}
+
+
 process LOAD_REPLICATES {
     publishDir "${params.silver_dir}/replicates", mode: 'copy', overwrite: true
 

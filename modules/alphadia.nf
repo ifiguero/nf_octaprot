@@ -67,10 +67,13 @@ process ALPHADIA_PSM {
     tuple path(alphadia_conf),
           path(fasta),
           path(speclib),
+          val(id),
           path(mzml_gz)
 
     output:
-    path "*.tsv"
+    tuple val(id),
+          path("${id}.results.tsv"),
+          path("${id}.runtime.tsv")
 
     script:
     """
@@ -91,16 +94,17 @@ process ALPHADIA_PSM {
 
     echo "[nf_alphadia] Running AlphaDIA"
 
-    /usr/bin/time -v -o runtime.tsv alphadia \
+    /usr/bin/time -v -o "${id}.runtime.tsv" alphadia \
         --config "${alphadia_conf}" \
         --library "${speclib}" \
         --file "${mzml_gz.baseName}" \
         --output report
 
-    echo "[nf_alphadia] Output:"
-    ls -lah
-
+    echo "[nf_alphadia] Cleanup"
     rm -f "${mzml_gz.baseName}"
+    
+    echo "[nf_alphadia] Rename Output:"
+    mv report/precursors.tsv "${id}.results.tsv"
 
     echo "[nf_alphadia] Finish"
     """

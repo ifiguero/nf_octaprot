@@ -75,12 +75,16 @@ process MSFRAGGER_PSM {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
     input:
-    tuple path(fragger_params), path(fasta), path(pepindex), path(mzml_gz)
+    tuple path(fragger_params),
+          path(fasta),
+          path(pepindex),
+          val(id),
+          path(mzml_gz)
 
-    output:
-    path "*.tsv"
-    path "*.pepXML"
-    path "*.pin"
+  output:
+  tuple val(id),
+        path("${id}.results.tsv"),
+        path("${id}.runtime.tsv")
 
     script:
     """
@@ -105,15 +109,15 @@ process MSFRAGGER_PSM {
 
     echo "[nf_msfragger] MSFragger search"
 
-    /usr/bin/time -v -o runtime.tsv java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
+    /usr/bin/time -v -o "${id}.runtime.tsv" java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] MSFragger exit code: \$?"
 
-    echo "[nf_msfragger] Search output:"
-    ls -lah
-
     echo "[nf_msfragger] Cleanup"
     rm -f "${mzml_gz.baseName}"
+
+    echo "[nf_msfragger] Rename output:"
+    mv "${id}.tsv" "${id}.results.tsv"
 
     echo "[nf_msfragger] Finish"
     """
