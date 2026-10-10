@@ -1,10 +1,10 @@
 include { LIST_DDA_REPLICATES; LIST_DIA_REPLICATES } from '../modules/parquet.nf'
 
 
-include { MSFRAGGER_SEARCH as MSFRAGGER_SEARCH_DDA; MSFRAGGER_SEARCH as MSFRAGGER_SEARCH_DIA } from '../03search-subworkflows.nf'
-include { DIANN_SEARCH as DIANN_SEARCH_DDA; DIANN_SEARCH as DIANN_SEARCH_DIA } from '../03search-subworkflows.nf'
-include { SAGE_SEARCH as SAGE_SEARCH_DDA; SAGE_SEARCH as SAGE_SEARCH_DIA } from '../03search-subworkflows.nf'
-include { ALPHADIA_SEARCH as ALPHADIA_SEARCH_DDA; ALPHADIA_SEARCH as ALPHADIA_SEARCH_DIA } from '../03search-subworkflows.nf'
+include { MSFRAGGER_SEARCH as MSFRAGGER_SEARCH_DDA; MSFRAGGER_SEARCH as MSFRAGGER_SEARCH_DIA } from './03search-subworkflows.nf'
+include { DIANN_SEARCH as DIANN_SEARCH_DDA; DIANN_SEARCH as DIANN_SEARCH_DIA } from './03search-subworkflows.nf'
+include { SAGE_SEARCH as SAGE_SEARCH_DDA; SAGE_SEARCH as SAGE_SEARCH_DIA } from './03search-subworkflows.nf'
+include { ALPHADIA_SEARCH as ALPHADIA_SEARCH_DDA; ALPHADIA_SEARCH as ALPHADIA_SEARCH_DIA } from './03search-subworkflows.nf'
 
 
 workflow WORKFLOW_SEARCH {
