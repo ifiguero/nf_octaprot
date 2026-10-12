@@ -1,9 +1,9 @@
 
 include { LOAD_REPLICATES; LIST_REPLICATES; LOAD_SAMPLE_METADATA; LOAD_MS1_METADATA; LOAD_MS2_METADATA } from '../modules/parquet.nf'
 include { LOAD_SPECTRA_INTENSITY_BINNING; LOAD_SPECTRA_PERCENTILE_BINNING } from '../modules/parquet.nf'
-include { DOWNLOAD_TRANSCODE_PUBLISH } from '../modules/gold.nf'
+include { DOWNLOAD_TRANSCODE_PUBLISH } from '../modules/transcode.nf'
 
-include { GOLD_TEX_SUMMARY; GOLD_REPLICATES } from '../modules/transcode.nf'
+include { GOLD_TEX_SUMMARY; GOLD_REPLICATES } from '../modules/gold.nf'
 
 include { REPLICATES_BREAKDOWN} from '../modules/plots.nf'
 include { COMPARATIVE_SPECTRA_MS1; COMPARATIVE_SPECTRA_MS2; SPECTRA_BINNING; SPECTRA_PERCENTILE} from '../modules/plots.nf'
