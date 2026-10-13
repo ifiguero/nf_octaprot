@@ -10,25 +10,26 @@ import polars as pl
 GOLD_DIR = Path(os.getenv("GOLD_DIR", "gold"))
 
 COLUMN_TITLES = {
+    "material": "Material",
     "repository_id": "Repository",
     "organism": "Organism",
     "condition": "Condition",
     "acquisition:type": "Mode",
     "row_count": "Replicates",
 
-    "raw_size_bytes": "Size (GiB)",
+    "raw_size_bytes": "Size\\;(GiB)",
 
     "summary:spectrum_count": "Scans",
     "summary:total_run_time_seconds": "Run(s)",
 
-    "ms1:spectrum_count": "MS1 Scans",
-    "ms2:spectrum_count": "MS2 Scans",
+    "ms1:spectrum_count": "MS1\\;Scans",
+    "ms2:spectrum_count": "MS2\\;Scans",
 
-    "ms1:peak_count_avg": "Mean MS1 Peaks",
-    "ms2:peak_count_avg": "Mean MS2 Peaks",
+    "ms1:peak_count_avg": "Mean\\;MS1\\;Peaks",
+    "ms2:peak_count_avg": "Mean\\;MS2\\;Peaks",
 
-    "ms1_std_peak_intensity:median": "Median MS1 Int",
-    "ms2_std_peak_intensity:median": "Median MS2 Int",
+    "ms1_std_peak_intensity:median": "Median\\;MS1\\;Int",
+    "ms2_std_peak_intensity:median": "Median\\;MS2\\;Int",
 
 }
 # Define the tables to construct systematically.
