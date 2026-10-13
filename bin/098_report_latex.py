@@ -56,7 +56,7 @@ TABLE_CONFIGS = [
     {
         "title": "Replicate Summary Aggregated by Acquisition Type",
         "group_by": ["acquisition:type"],
-        "sum_cols": ["raw_size_bytes". "summary:spectrum_count", "ms1:spectrum_count", "ms2:spectrum_count"],
+        "sum_cols": ["raw_size_bytes", "summary:spectrum_count", "ms1:spectrum_count", "ms2:spectrum_count"],
         "avg_cols": []
     },
     {
