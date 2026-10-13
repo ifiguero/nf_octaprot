@@ -23,7 +23,9 @@ workflow WORKFLOW_REPLICATES {
     ms1_metadata = LOAD_MS1_METADATA(bronze_replicate)
     ms2_metadata = LOAD_MS2_METADATA(bronze_replicate)
 
-    GOLD_TEX_SUMMARY(GOLD_REPLICATES( sample_metadata.mix(ms1_metadata, ms2_metadata).collect() ))
+    gold_parquet = GOLD_REPLICATES( sample_metadata.mix(ms1_metadata, ms2_metadata).collect() )
+
+    GOLD_TEX_SUMMARY( gold_parquet )
 
 /*
     spectra_binning = LOAD_SPECTRA_INTENSITY_BINNING(bronze_replicate)
