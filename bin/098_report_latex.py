@@ -91,12 +91,11 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
     grouped_df = df.group_by(group_cols).agg(agg_exprs).sort(group_cols)
 
     # Flatten headers correctly
-    flat_headers = list(group_cols) + ["Replicates"]
+    flat_headers = list(group_cols) + [COLUMN_TITLES["row_count"]]
     for c in sum_cols:
-        label = c.replace("_bytes", " (GiB) Sum") if c.endswith("_bytes") else f"{c} Sum"
-        flat_headers.append(label)
+        flat_headers.append(f"${COLUMN_TITLES[c]}_{{Sum}}$")
     for c in avg_cols:
-        flat_headers.append(f"{c} Mean \\pm Std")
+        flat_headers.append(f"${COLUMN_TITLES[c]}_{{Mean \\pm Std}}$")
 #        flat_headers.append(f"{c} Std")
 
     col_format = "l" * len(group_cols) + "r" * (len(flat_headers) - len(group_cols))
@@ -133,7 +132,7 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
         for c in avg_cols:
             mean_val = row.get(f"{c}_mean")
             std_val = row.get(f"{c}_std")
-            row_values.append(f"{mean_val:,.2f} \\pm {std_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
+            row_values.append(f"{mean_val:,.2f} \$\\pm\$ {std_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
 
 
         latex_lines.append(" & ".join(row_values) + " \\\\")
