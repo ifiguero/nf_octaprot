@@ -56,7 +56,7 @@ def escape_latex(text: str) -> str:
 
 def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_cols: list, avg_cols: list) -> str:
     # Build expressions for aggregation
-    agg_exprs = []
+    agg_exprs = [pl.len().alias("row_count")]
     for col in sum_cols:
         if col in df.columns:
             agg_exprs.append(pl.col(col).sum().alias(f"{col}_sum"))
@@ -69,12 +69,13 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
     grouped_df = df.group_by(group_cols).agg(agg_exprs).sort(group_cols)
 
     # Flatten headers correctly
-    flat_headers = list(group_cols)
+    flat_headers = list(group_cols) + ["Replicates"]
     for c in sum_cols:
-        flat_headers.append(f"{c} Sum")
+        label = c.replace("_bytes", " (GiB) Sum") if c.endswith("_bytes") else f"{c} Sum"
+        flat_headers.append(label)
     for c in avg_cols:
-        flat_headers.append(f"{c} Mean")
-        flat_headers.append(f"{c} Std")
+        flat_headers.append(f"{c} Mean \\pm Std")
+#        flat_headers.append(f"{c} Std")
 
     col_format = "l" * len(group_cols) + "r" * (len(flat_headers) - len(group_cols))
 
@@ -100,6 +101,9 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
                     val = val.hex()
             row_values.append(escape_latex(str(val)))
 
+        count_val = row.get("row_count")
+        row_values.append(f"{count_val:,}" if count_val is not None else "-")
+
         for c in sum_cols:
             val = row.get(f"{c}_sum")
             row_values.append(f"{val:,.2f}" if isinstance(val, (int, float)) and val is not None else "-")
@@ -107,8 +111,8 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
         for c in avg_cols:
             mean_val = row.get(f"{c}_mean")
             std_val = row.get(f"{c}_std")
-            row_values.append(f"{mean_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
-            row_values.append(f"{std_val:,.2f}" if isinstance(std_val, (int, float)) and std_val is not None else "-")
+            row_values.append(f"{mean_val:,.2f} \\pm {std_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
+
 
         latex_lines.append(" & ".join(row_values) + " \\\\")
 
