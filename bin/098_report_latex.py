@@ -9,6 +9,28 @@ import polars as pl
 # ==========================================
 GOLD_DIR = Path(os.getenv("GOLD_DIR", "gold"))
 
+COLUMN_TITLES = {
+    "repository_id": "Repository",
+    "organism": "Organism",
+    "condition": "Condition",
+    "acquisition:type": "Mode",
+    "row_count": "Replicates",
+
+    "raw_size_bytes_sum": "Size (GiB)",
+
+    "summary:spectrum_count_mean": "Scans",
+    "summary:total_run_time_seconds_mean": "Run(s)",
+
+    "ms1:spectrum_count": "MS1 Scans",
+    "ms2:spectrum_count": "MS2 Scans",
+
+    "ms1:peak_count_avg": "Mean MS1 Peaks",
+    "ms2:peak_count_avg": "Mean MS2 Peaks",
+
+    "ms1_std_peak_intensity:median": "Median MS1 Int",
+    "ms2_std_peak_intensity:median": "Median MS2 Int",
+
+}
 # Define the tables to construct systematically.
 # Each entry specifies a title, the columns to group by,
 # columns to sum, and columns to average.
@@ -16,31 +38,31 @@ TABLE_CONFIGS = [
     {
         "title": "Replicate Summary Aggregated by Repository ID",
         "group_by": ["repository_id"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes", "normalized_size_bytes"],
+        "sum_cols": ["raw_size_bytes"],
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count"]
     },
     {
         "title": "Replicate Summary Aggregated by Organism",
         "group_by": ["organism", "material"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes", "ms1:spectrum_count", "ms2:spectrum_count"],
+        "sum_cols": ["raw_size_bytes",
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds"]
     },
     {
         "title": "Replicate Summary Aggregated by Condition",
         "group_by": ["material", "condition"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes"],
+        "sum_cols": ["raw_size_bytes",
         "avg_cols": ["summary:total_run_time_seconds", "ms1:peak_count_avg"]
     },
     {
         "title": "Replicate Summary Aggregated by Acquisition Type",
         "group_by": ["acquisition:type"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes"],
+        "sum_cols": ["raw_size_bytes"],
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms2:spectrum_count"]
     },
     {
         "title": "Replicate Summary Aggregated by Organism and Condition",
         "group_by": ["material", "acquisition:type"],
-        "sum_cols": ["compressed_size_bytes"],
+        "sum_cols": [],
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms1_std_peak_intensity:median", "ms2_std_peak_intensity:median"]
     }
 ]
