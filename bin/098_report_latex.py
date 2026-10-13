@@ -91,7 +91,7 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
     grouped_df = df.group_by(group_cols).agg(agg_exprs).sort(group_cols)
 
     # Flatten headers correctly
-    flat_headers = list(group_cols) + [COLUMN_TITLES["row_count"]]
+    flat_headers = [ COLUMN_TITLES[col] for col in group_cols ] + [ COLUMN_TITLES["row_count"] ]
     for c in sum_cols:
         flat_headers.append(f"${COLUMN_TITLES[c]}_{{Sum}}$")
     for c in avg_cols:
