@@ -16,10 +16,10 @@ COLUMN_TITLES = {
     "acquisition:type": "Mode",
     "row_count": "Replicates",
 
-    "raw_size_bytes_sum": "Size (GiB)",
+    "raw_size_bytes": "Size (GiB)",
 
-    "summary:spectrum_count_mean": "Scans",
-    "summary:total_run_time_seconds_mean": "Run(s)",
+    "summary:spectrum_count": "Scans",
+    "summary:total_run_time_seconds": "Run(s)",
 
     "ms1:spectrum_count": "MS1 Scans",
     "ms2:spectrum_count": "MS2 Scans",
