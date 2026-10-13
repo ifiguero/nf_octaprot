@@ -107,7 +107,7 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
     latex_lines.append(f"\\begin{{tabular}}{{{col_format}}}")
     latex_lines.append("\\toprule")
 
-    header_str = " & ".join([escape_latex(h) for h in flat_headers]) + " \\\\"
+    header_str = " & ".join(flat_headers) + " \\\\"
     latex_lines.append(header_str)
     latex_lines.append("\\midrule")
 
