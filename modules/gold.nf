@@ -29,7 +29,7 @@ process GOLD_TEX_SUMMARY {
 
     script:
     """
-    export GOLD_DIR="${params.gold}"
+    export GOLD_DIR="${params.gold_dir}"
     098_report_latex.py
     """
 }
