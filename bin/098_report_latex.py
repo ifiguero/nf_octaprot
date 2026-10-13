@@ -56,14 +56,14 @@ TABLE_CONFIGS = [
     {
         "title": "Replicate Summary Aggregated by Acquisition Type",
         "group_by": ["acquisition:type"],
-        "sum_cols": ["raw_size_bytes"],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms2:spectrum_count"]
+        "sum_cols": ["raw_size_bytes". "summary:spectrum_count", "ms1:spectrum_count", "ms2:spectrum_count"],
+        "avg_cols": []
     },
     {
         "title": "Replicate Summary Aggregated by Organism and Condition",
         "group_by": ["material", "acquisition:type"],
         "sum_cols": [],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms1_std_peak_intensity:median", "ms2_std_peak_intensity:median"]
+        "avg_cols": ["summary:spectrum_count", "ms1_std_peak_intensity:median", "ms2_std_peak_intensity:median"]
     }
 ]
 
@@ -132,7 +132,7 @@ def generate_latex_table(df: pl.DataFrame, title: str, group_cols: list, sum_col
         for c in avg_cols:
             mean_val = row.get(f"{c}_mean")
             std_val = row.get(f"{c}_std")
-            row_values.append(f"{mean_val:,.2f} \$\\pm\$ {std_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
+            row_values.append(f"{mean_val:,.2f} $\\pm$ {std_val:,.2f}" if isinstance(mean_val, (int, float)) and mean_val is not None else "-")
 
 
         latex_lines.append(" & ".join(row_values) + " \\\\")
