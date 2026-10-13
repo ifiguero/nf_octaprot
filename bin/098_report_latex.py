@@ -44,13 +44,13 @@ TABLE_CONFIGS = [
     {
         "title": "Replicate Summary Aggregated by Organism",
         "group_by": ["organism", "material"],
-        "sum_cols": ["raw_size_bytes",
+        "sum_cols": ["raw_size_bytes"],
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds"]
     },
     {
         "title": "Replicate Summary Aggregated by Condition",
         "group_by": ["material", "condition"],
-        "sum_cols": ["raw_size_bytes",
+        "sum_cols": ["raw_size_bytes"],
         "avg_cols": ["summary:total_run_time_seconds", "ms1:peak_count_avg"]
     },
     {
