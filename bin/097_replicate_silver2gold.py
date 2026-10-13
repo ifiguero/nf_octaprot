@@ -1,10 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# dependencies = [
-#     "polars",
-#     "pyarrow",
-# ]
-# ///
+#!/usr/bin/env -S uv run --with polars --with pyarrow python3
 
 import os
 from pathlib import Path
@@ -166,7 +160,6 @@ def process_scan_metadata(table_name: str, prefix: str) -> pl.DataFrame:
     return pivoted.rename(rename_map)
 
 def main():
-    GOLD_DIR.mkdir(parents=True, exist_ok=True)
 
     print("Loading core silver tables...")
     gold_df = load_core_silver()

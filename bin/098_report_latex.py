@@ -1,10 +1,4 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# dependencies = [
-#     "polars",
-#     "pyarrow",
-# ]
-# ///
+#!/usr/bin/env -S uv run --with polars --with pyarrow python3
 
 import os
 from pathlib import Path
@@ -27,13 +21,13 @@ TABLE_CONFIGS = [
     },
     {
         "title": "Replicate Summary Aggregated by Organism",
-        "group_by": ["organism"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes", "normalized_size_bytes"],
+        "group_by": ["organism", "material"],
+        "sum_cols": ["raw_size_bytes", "compressed_size_bytes", "ms1:spectrum_count", "ms2:spectrum_count"],
         "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds"]
     },
     {
         "title": "Replicate Summary Aggregated by Condition",
-        "group_by": ["condition"],
+        "group_by": ["material", "condition"],
         "sum_cols": ["raw_size_bytes", "compressed_size_bytes"],
         "avg_cols": ["summary:total_run_time_seconds", "ms1:peak_count_avg"]
     },
@@ -41,13 +35,13 @@ TABLE_CONFIGS = [
         "title": "Replicate Summary Aggregated by Acquisition Type",
         "group_by": ["acquisition:type"],
         "sum_cols": ["raw_size_bytes", "compressed_size_bytes"],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds"]
+        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms2:spectrum_count"]
     },
     {
         "title": "Replicate Summary Aggregated by Organism and Condition",
-        "group_by": ["organism", "condition"],
-        "sum_cols": ["raw_size_bytes", "compressed_size_bytes", "normalized_size_bytes"],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count"]
+        "group_by": ["material", "acquisition:type"],
+        "sum_cols": ["compressed_size_bytes"],
+        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count", "ms1_std_peak_intensity:median", "ms2_std_peak_intensity:median"]
     }
 ]
 
