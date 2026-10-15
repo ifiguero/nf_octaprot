@@ -72,7 +72,7 @@ def generate_sample_id(repository_id: str, remote_path: str) -> str:
             sample_id = uncompressed[:-len(sample_ext)]
             break
 
-    return f"{repository_id}_{sample_id}"
+    return f"{repository_id}_{sample_id}".replace(" ", "").strip()
 
 def scan_ftp_directory(ftp, current_path: str, files_list: list[dict]) -> int:
     items = ftp.listdir(current_path)
