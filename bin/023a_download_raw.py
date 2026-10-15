@@ -170,13 +170,15 @@ def open_ftp(info):
 
 def download_directory(ftp, remote_dir, output_dir):
     output_dir.mkdir(exist_ok=True)
+    logger.info(f"Download directory: Local({output_dir}) | Remore ({remote_dir}) .")
+
 
     for name in ftp.listdir(remote_dir):
         remote = ftp.path.join(remote_dir, name)
-        if not ftp.path.isfile(remote):
-            continue
-
+        if ftp.path.isfile(remote):
             download_file(ftp, remote, output_dir / name )
+        else:
+            download_directory(ftp, remote, output_dir / name)
 
 def download_file(ftp, remote_path, output_path):
 
