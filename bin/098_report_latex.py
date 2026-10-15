@@ -16,6 +16,7 @@ COLUMN_TITLES = {
     "condition": "Condition",
     "acquisition:type": "Mode",
     "row_count": "Replicates",
+    "info:instrument_name": "Model",
 
     "raw_size_bytes": "Size\\;(GiB)",
 
@@ -30,6 +31,7 @@ COLUMN_TITLES = {
 
     "ms1_std_peak_intensity:median": "Median\\;MS1\\;Int",
     "ms2_std_peak_intensity:median": "Median\\;MS2\\;Int",
+    "ms2:isolation_window_avg": "MS2 Isolation Window",
 
 }
 # Define the tables to construct systematically.
@@ -38,33 +40,27 @@ COLUMN_TITLES = {
 TABLE_CONFIGS = [
     {
         "title": "Replicate Summary Aggregated by Repository ID",
-        "group_by": ["repository_id"],
+        "group_by": ["repository_id", "info:instrument_name", "material"],
         "sum_cols": ["raw_size_bytes"],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds", "ms1:spectrum_count"]
-    },
-    {
-        "title": "Replicate Summary Aggregated by Organism",
-        "group_by": ["organism", "material"],
-        "sum_cols": ["raw_size_bytes"],
-        "avg_cols": ["summary:spectrum_count", "summary:total_run_time_seconds"]
-    },
-    {
-        "title": "Replicate Summary Aggregated by Condition",
-        "group_by": ["material", "condition"],
-        "sum_cols": ["raw_size_bytes"],
-        "avg_cols": ["summary:total_run_time_seconds", "ms1:peak_count_avg"]
-    },
-    {
-        "title": "Replicate Summary Aggregated by Acquisition Type",
-        "group_by": ["acquisition:type"],
-        "sum_cols": ["raw_size_bytes", "summary:spectrum_count", "ms1:spectrum_count", "ms2:spectrum_count"],
         "avg_cols": []
     },
     {
-        "title": "Replicate Summary Aggregated by Organism and Condition",
-        "group_by": ["material", "acquisition:type"],
+        "title": "Replicate Summary Aggregated by Condition",
+        "group_by": ["organism", "material", "condition"],
+        "sum_cols": ["raw_size_bytes"],
+        "avg_cols": []
+    },
+    {
+        "title": "Replicate Summary Aggregated by Acquisition Type and Instrument",
+        "group_by": ["acquisition:type", "info:instrument_name"],
+        "sum_cols": ["summary:spectrum_count", "ms1:spectrum_count", "ms2:spectrum_count"],
+        "avg_cols": []
+    },
+    {
+        "title": "Replicate Summary Aggregated by Condition, instrument and adquisition",
+        "group_by": ["material", "info:instrument_name", "acquisition:type"],
         "sum_cols": [],
-        "avg_cols": ["summary:spectrum_count", "ms1_std_peak_intensity:median", "ms2_std_peak_intensity:median"]
+        "avg_cols": ["ms1:spectrum_count", "ms2:spectrum_count", "ms2:isolation_window_avg"],
     }
 ]
 

@@ -24,7 +24,7 @@ SAMPLE_METADATA_ACCESSIONS = [
 ]
 
 SCAN_METADATA_ACCESSIONS = [
-    "MS:1000285",
+    "info:instrument_name",
     "peak_intensity:median",
     "peak_separation:median",
 ]
