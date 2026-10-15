@@ -62,7 +62,7 @@ def main() -> int:
     non_nullable_columns = [c.name for c in columns if not c.nullable]
 
     try:
-        df = pl.read_csv(csv_path)
+        df = pl.read_csv(csv_path).filter(~pl.all_horizontal(pl.all().is_null()))
     except Exception as exc:
         fail(f"Failed to read CSV: {exc}")
 
