@@ -23,7 +23,6 @@ NS = f"{{{NS_URI}}}"
 
 BATCH_SIZE = 100_000
 part_files = []
-chunk_idx = 0
 
 
 
@@ -97,6 +96,8 @@ def summarize_spectra(
     selected_spectra = 0
     last_ms1_scan = 1
     warn_scanumber = 0
+    chunk_idx = 0
+
 
     for index, spectrum in enumerate(reader, start=1):
         total_spectra += 1
