@@ -23,7 +23,7 @@ NS = f"{{{NS_URI}}}"
 
 BATCH_SIZE = 100_000
 part_files = []
-part_idx = 0
+chunk_idx = 0
 
 
 
