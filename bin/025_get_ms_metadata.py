@@ -6,6 +6,7 @@ import argparse
 import logging
 import statistics
 import sys
+import os
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree as ET
