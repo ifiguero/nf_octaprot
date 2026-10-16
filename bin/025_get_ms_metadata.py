@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --with polars --with pymzml python3.12
+#!/usr/bin/env -S uv run --with polars --with pymzml python3
 
 from __future__ import annotations
 
@@ -18,6 +18,12 @@ from pymzml.run import Reader
 
 NS_URI = "http://psi.hupo.org/ms/mzml"
 NS = f"{{{NS_URI}}}"
+
+
+BATCH_SIZE = 100_000
+part_files = []
+part_idx = 0
+
 
 
 logging.basicConfig(
@@ -208,6 +214,10 @@ def summarize_spectra(
                     "value": round(statistics.fmean(delta_mz),3),
                 })
 
+        if len(rows) >= CHUNK_SIZE:
+            chunk_idx = flush_batch(rows, chunk_idx)
+            rows = []  #
+
     if warn_scanumber > 0:
         logger.warning(
                 f"spectrum.ID mismatch, spectra count: {warn_scanumber}"
@@ -220,7 +230,34 @@ def summarize_spectra(
         requested_ms_level,
     )
 
-    return rows
+    if rows:
+        flush_batch(rows, chunk_idx)
+
+    return
+
+def flush_batch(current_rows, idx):
+    if not current_rows:
+        return None
+
+    df_batch = pl.DataFrame(
+        current_rows,
+        schema={
+            "replicate_id": pl.String,
+            "scan_number": pl.Int64,
+            "accession": pl.String,
+            "name": pl.String,
+            "value": pl.String
+        },
+        strict=False
+    )
+
+    part_path = f"temp_parts/part_{idx}.parquet"
+    df_batch.write_parquet(part_path, compression="zstd")
+    current_rows.clear()
+    part_files.append(part_path)
+
+    return idx + 1
+
 
 def process(input_path: Path, ms_level: int) -> Path:
     name = input_path.name
@@ -243,33 +280,32 @@ def process(input_path: Path, ms_level: int) -> Path:
 
     reader = Reader(str(input_path))
 
-    rows = summarize_spectra(
+    os.makedirs("temp_parts", exist_ok=True)
+
+
+    summarize_spectra(
         reader=reader,
         replicate_id=replicate_id,
         requested_ms_level=ms_level,
     )
 
-    df = pl.DataFrame(
-        rows,
-        schema={
-            "replicate_id": pl.String,
-            "scan_number": pl.Int64,
-            "accession": pl.String,
-            "name": pl.String,
-            "value": pl.String
-        },
-        strict=False
-    ).sort(["replicate_id", "scan_number", "accession"]).unique(subset=["replicate_id", "scan_number", "accession"], keep="first", maintain_order=True)
-
-    df.write_parquet(
-        output_path,
-        compression="zstd",
+    df_lazy = (
+        pl.scan_parquet("temp_parts/part_*.parquet")
+        .sort(["replicate_id", "scan_number", "accession"])
+        .unique(subset=["replicate_id", "scan_number", "accession"], keep="first")
     )
+
+
+    df_lazy.sink_parquet(output_path, compression="zstd")
+
+    for p in part_files:
+        if os.path.exists(p):
+            os.remove(p)
 
     logger.info(
         "Wrote %d metadata rows for %d scans to %s",
-        df.height,
-        df.select(["replicate_id", "scan_number"]).unique().height,
+        df_lazy.height,
+        df_lazy.select(["replicate_id", "scan_number"]).unique().height,
         output_path,
     )
 

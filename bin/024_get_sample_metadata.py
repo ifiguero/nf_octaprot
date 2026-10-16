@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --with polars --with pymzml python3.12
+#!/usr/bin/env -S uv run --with polars --with pymzml --with pyarrow python3
 
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ from pymzml.run import Reader
 
 NS_URI = "http://psi.hupo.org/ms/mzml"
 NS = f"{{{NS_URI}}}"
+
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -611,6 +613,437 @@ def summarize_spectra(
         )
 
 
+import pyarrow as pa
+
+class ArrowDynamicList:
+    """A memory-efficient dynamic list backed by PyArrow chunked arrays."""
+    def __init__(self, dtype=pa.float32(), chunk_size=100_000):
+        self.dtype = dtype
+        self.chunk_size = chunk_size
+        self._chunks = []
+        self._current = []
+
+    def append(self, val: float):
+        self._current.append(val)
+        if len(self._current) >= self.chunk_size:
+            self._chunks.append(pa.array(self._current, type=self.dtype))
+            self._current = []
+
+    def _get_chunked_array(self):
+        if self._current:
+            self._chunks.append(pa.array(self._current, type=self.dtype))
+            self._current = []
+        if not self._chunks:
+            return pa.array([], type=self.dtype)
+        return pa.chunked_array(self._chunks)
+
+    def __len__(self):
+        return sum(len(c) for c in self._chunks) + len(self._current)
+
+    def __bool__(self):
+        return len(self) > 0
+
+    def __iter__(self):
+        arr = self._get_chunked_array()
+        for chunk in arr.iterchunks():
+            yield from chunk.to_pylist()
+
+def summarize_spectra_pyarrow(
+    reader: Reader,
+    replicate_id: str,
+    rows: list[dict[str, Any]],
+) -> None:
+    total_count = 0
+    ms1_count = 0
+    ms2_count = 0
+
+    scan_times = ArrowDynamicList()
+    total_ion_current = ArrowDynamicList()
+    ms1_tic = ArrowDynamicList()
+    ms2_tic = ArrowDynamicList()
+
+    ms1_mz_low = ArrowDynamicList()
+    ms1_mz_high = ArrowDynamicList()
+    ms2_mz_low = ArrowDynamicList()
+    ms2_mz_high = ArrowDynamicList()
+    ms1_mz_window = ArrowDynamicList()
+    ms2_mz_window = ArrowDynamicList()
+
+    precursor_mz = ArrowDynamicList()
+    collision_energy = ArrowDynamicList()
+
+    isolation_targets = ArrowDynamicList()
+    isolation_lower = ArrowDynamicList()
+    isolation_upper = ArrowDynamicList()
+    isolation_window = ArrowDynamicList()
+
+
+    peak_count = ArrowDynamicList()
+    ms1_peak_count = ArrowDynamicList()
+    ms2_peak_count = ArrowDynamicList()
+    peak_intensity_min = ArrowDynamicList()
+    peak_intensity_max = ArrowDynamicList()
+    peak_intensity_avg = ArrowDynamicList()
+    peak_intensity_median = ArrowDynamicList()
+
+
+    mz_delta_min = ArrowDynamicList()
+    mz_delta_max = ArrowDynamicList()
+    mz_delta_avg = ArrowDynamicList()
+    mz_delta_median = ArrowDynamicList()
+
+    for spectrum in reader:
+        total_count += 1
+
+        try:
+            ms_level = int(spectrum.ms_level)
+        except Exception:
+            ms_level = None
+
+        try:
+            scan_time = numeric(spectrum.scan_time_in_minutes())
+        except Exception:
+            scan_time = None
+
+        if scan_time is not None:
+            scan_times.append(scan_time)
+
+
+        try:
+            intensities = [log10(1+float(x)) for x in spectrum.i]
+        except Exception:
+            intensities = []
+
+        if intensities:
+            peak_count.append(float(len(intensities)))
+            peak_intensity_min.append(min(intensities))
+            peak_intensity_max.append(max(intensities))
+            peak_intensity_avg.append(statistics.fmean(intensities))
+            peak_intensity_median.append(statistics.median(intensities))
+        else:
+            peak_count.append(0.0)
+
+        try:
+            mz_values = sorted(float(x) for x in spectrum.mz)
+        except Exception:
+            mz_values = []
+
+        if len(mz_values) > 1:
+            delta_mz = [high - low for low, high in zip(mz_values, mz_values[1:]) ]
+
+            mz_delta_min.append(min(delta_mz))
+            mz_delta_max.append(max(delta_mz))
+            mz_delta_avg.append(statistics.fmean(delta_mz))
+            mz_delta_median.append(statistics.median(delta_mz))
+
+        cv_params: dict[str, str | None] = {}
+
+        for cv in spectrum.element.iter(f"{NS}cvParam"):
+            accession = cv.get("accession")
+            if accession:
+                cv_params[accession] = cv.get("value")
+
+        tic = numeric(cv_params.get("MS:1000285"))
+
+        if tic is not None:
+            total_ion_current.append(tic)
+
+        mz_low = numeric(cv_params.get("MS:1000501"))
+        mz_high = numeric(cv_params.get("MS:1000500"))
+
+
+
+        if ms_level == 1:
+            ms1_count += 1
+            ms1_peak_count.append(float(len(intensities)))
+
+            if tic is not None:
+                ms1_tic.append(tic)
+
+            if mz_low is not None:
+                ms1_mz_low.append(mz_low)
+
+            if mz_high is not None:
+                ms1_mz_high.append(mz_high)
+
+            if mz_low is not None and mz_high is not None:
+                ms1_mz_window.append(mz_high - mz_low)
+
+        elif ms_level == 2:
+            ms2_count += 1
+            ms2_peak_count.append(float(len(intensities)))
+
+            if tic is not None:
+                ms2_tic.append(tic)
+
+            if mz_low is not None:
+                ms2_mz_low.append(mz_low)
+
+            if mz_high is not None:
+                ms2_mz_high.append(mz_high)
+
+            if mz_low is not None and mz_high is not None:
+                ms2_mz_window.append(mz_high - mz_low)
+
+
+            precursor_list = spectrum.element.find(f"{NS}precursorList")
+
+            if precursor_list is not None:
+                for precursor in precursor_list.findall(f"{NS}precursor"):
+                    isolation_up, isolation_down = None, None
+                    for cv in precursor.iter(f"{NS}cvParam"):
+                        accession = cv.get("accession")
+                        value = numeric(cv.get("value"))
+
+                        if accession == "MS:1000827" and value is not None:
+                            isolation_targets.append(value)
+
+                        elif accession == "MS:1000828" and value is not None:
+                            isolation_down = value
+                            isolation_lower.append(value)
+
+                        elif accession == "MS:1000829" and value is not None:
+                            isolation_up = value
+                            isolation_upper.append(value)
+
+                        elif accession == "MS:1000744" and value is not None:
+                            precursor_mz.append(value)
+
+                        elif accession == "MS:1000045" and value is not None:
+                            collision_energy.append(value)
+
+                    if isolation_down is not None and isolation_up is not None:
+                        isolation_window.append(isolation_up + isolation_down)
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:spectrum_count",
+        "total_spectrum_count",
+        total_count,
+        "summary",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "ms1:spectrum_count",
+        "ms1_spectrum_count",
+        ms1_count,
+        "ms1",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:spectrum_count",
+        "ms2_spectrum_count",
+        ms2_count,
+        "ms2",
+    )
+
+    if scan_times:
+        add_value(
+            rows,
+            replicate_id,
+            "summary:first_scan_time_minutes",
+            "first_scan_time_minutes",
+            round(min(scan_times),3),
+            "summary",
+        )
+
+        add_value(
+            rows,
+            replicate_id,
+            "summary:last_scan_time_minutes",
+            "last_scan_time_minutes",
+            round(max(scan_times),3),
+            "summary",
+        )
+
+        run_time = max(scan_times) - min(scan_times)
+
+        add_value(
+            rows,
+            replicate_id,
+            "summary:total_run_time_seconds",
+            "total_run_time_seconds",
+            round(run_time*60, 3),
+            "summary",
+        )
+
+
+    add_value(
+        rows,
+        replicate_id,
+        "ms1:mz_low_min",
+        "ms1_mz_low_min",
+        round(min(ms1_mz_low),3),
+        "ms1",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms1:mz_high_max",
+        "ms1_mz_high_max",
+        round(max(ms1_mz_high),3),
+        "ms1",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms1:mz_window_avg",
+        "ms1_mz_window_avg",
+        round(statistics.fmean(ms1_mz_window),3),
+        "ms1",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:mz_low_min",
+        "ms2_mz_low_min",
+        round(min(ms2_mz_low),3),
+        "ms2",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:mz_high_max",
+        "ms2_mz_high_max",
+        round(max(ms2_mz_high),3),
+        "ms2",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:mz_window_avg",
+        "ms2_mz_window_avg",
+        round(statistics.fmean(ms2_mz_window),3),
+        "ms2",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:isolation_lower_offset_min",
+        "ms2_isolation_lower_offset_min",
+        round(min(isolation_lower),3),
+        "ms2",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "ms2:isolation_upper_offset_max",
+        "ms2_isolation_upper_offset_max",
+        round(max(isolation_upper),3),
+        "ms2",
+    )
+
+
+
+    add_stat(rows, replicate_id, "tic", total_ion_current, 'summary')
+    add_stat(rows, replicate_id, "tic", ms1_tic, 'ms1')
+    add_stat(rows, replicate_id, "tic", ms2_tic, 'ms2')
+
+    add_stat(rows, replicate_id, "precursor_mz", precursor_mz, 'summary')
+    add_stat(rows, replicate_id, "collision_energy", collision_energy, 'ms2')
+
+    add_stat(rows, replicate_id, "isolation_target_mz", isolation_targets, 'ms2')
+    add_stat(rows, replicate_id, "isolation_window", isolation_window, 'ms2')
+
+    add_stat(rows, replicate_id, "peak_count", peak_count, 'summary')
+    add_stat(rows, replicate_id, "peak_count", ms1_peak_count, 'ms1')
+    add_stat(rows, replicate_id, "peak_count", ms2_peak_count, 'ms2')
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_separation_min",
+        "peak_separation_min",
+        round(min(mz_delta_min),3),
+        "summary",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_separation_max",
+        "peak_separation_max",
+        round(max(mz_delta_max),3),
+        "summary",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_separation_avg",
+        "peak_separation_avg",
+        round(statistics.fmean(mz_delta_avg),3),
+        "summary",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_separation_median",
+        "peak_separation_median",
+        round(statistics.fmean(mz_delta_median),3),
+        "summary",
+    )
+
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_intensity_min",
+        "peak_intensity_min",
+        round(min(peak_intensity_min),3),
+        "summary",
+    )
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_intensity_max",
+        "peak_intensity_max",
+        round(max(peak_intensity_max),3),
+        "summary",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_intensity_avg",
+        "peak_intensity_avg",
+        round(statistics.fmean(peak_intensity_avg),3),
+        "summary",
+    )
+
+    add_value(
+        rows,
+        replicate_id,
+        "summary:peak_intensity_median",
+        "peak_intensity_median",
+        round(statistics.fmean(peak_intensity_median),3),
+        "summary",
+    )
+
+
+    if len(isolation_window) > 0:
+        if len(isolation_window) >= 10 and statistics.fmean(isolation_window) >= 4:
+            mode = "DIA"
+        else:
+            mode = "DDA"
+
+        add_value(
+            rows,
+            replicate_id,
+            "acquisition:type",
+            "Heuristic adquisition",
+            mode,
+            "acquisition",
+        )
+
+
+
 def process(input_path: Path) -> Path:
     name = input_path.name
 
@@ -667,7 +1100,7 @@ def process(input_path: Path) -> Path:
         rows,
     )
 
-    summarize_spectra(
+    summarize_spectra_pyarrow(
         reader,
         replicate_id,
         rows,
