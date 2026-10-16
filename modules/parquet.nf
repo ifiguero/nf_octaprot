@@ -62,8 +62,8 @@ process LIST_REPLICATES {
 
 process LOAD_SAMPLE_METADATA {
     storeDir "${params.silver_dir}/sample_metadata"
-    maxForks 1
-    memory '32 GB'
+    maxForks 2
+    memory '8 GB'
 
     input:
     path mzml
@@ -79,8 +79,8 @@ process LOAD_SAMPLE_METADATA {
 
 process LOAD_MS1_METADATA {
     storeDir "${params.silver_dir}/ms1_metadata"
-    maxForks 1
-    memory '32 GB'
+    maxForks 2
+    memory '8 GB'
 
     input:
     path mzml
@@ -96,8 +96,8 @@ process LOAD_MS1_METADATA {
 
 process LOAD_MS2_METADATA {
     storeDir "${params.silver_dir}/ms2_metadata"
-    maxForks 1
-    memory '32 GB'
+    maxForks 2
+    memory '8 GB'
 
     input:
     path mzml

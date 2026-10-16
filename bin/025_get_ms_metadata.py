@@ -21,7 +21,7 @@ NS_URI = "http://psi.hupo.org/ms/mzml"
 NS = f"{{{NS_URI}}}"
 
 
-BATCH_SIZE = 100_000
+BATCH_SIZE = 1_000_000
 part_files = []
 
 
