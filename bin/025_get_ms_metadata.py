@@ -304,10 +304,12 @@ def process(input_path: Path, ms_level: int) -> Path:
         if os.path.exists(p):
             os.remove(p)
 
+    df_final = pl.read_parquet(output_path)
+
     logger.info(
         "Wrote %d metadata rows for %d scans to %s",
-        df_lazy.height,
-        df_lazy.select(["replicate_id", "scan_number"]).unique().height,
+        df_final.height,
+        df_final.select(["replicate_id", "scan_number"]).unique().height,
         output_path,
     )
 
