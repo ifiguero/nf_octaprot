@@ -215,7 +215,7 @@ def summarize_spectra(
                     "value": round(statistics.fmean(delta_mz),3),
                 })
 
-        if len(rows) >= CHUNK_SIZE:
+        if len(rows) >= BATCH_SIZE:
             chunk_idx = flush_batch(rows, chunk_idx)
             rows = []  #
 
