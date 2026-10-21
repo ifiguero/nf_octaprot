@@ -103,7 +103,7 @@ def process_sample_metadata() -> pl.DataFrame:
 
     agg_exprs = []
     for acc in SAMPLE_METADATA_ACCESSIONS:
-        if acc == "acquisition:type":
+        if acc in ["acquisition:type", "info:instrument_name"]:
             expr = (
                 pl.col("value")
                 .filter(pl.col("accession").cast(pl.String) == acc)
