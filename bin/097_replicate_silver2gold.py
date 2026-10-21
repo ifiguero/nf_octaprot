@@ -14,6 +14,7 @@ GOLD_DIR = Path(os.getenv("GOLD_DIR", "."))
 # ==========================================
 SAMPLE_METADATA_ACCESSIONS = [
     "acquisition:type",
+    "info:instrument_name",
     "ms2:isolation_window_avg",
     "ms2:peak_count_avg",
     "ms1:peak_count_avg",
@@ -24,7 +25,6 @@ SAMPLE_METADATA_ACCESSIONS = [
 ]
 
 SCAN_METADATA_ACCESSIONS = [
-    "info:instrument_name",
     "peak_intensity:median",
     "peak_separation:median",
 ]
@@ -61,7 +61,6 @@ def get_gzip_sizes(replicate_id_bytes: bytes) -> tuple[int | None, int | None]:
     except Exception as e:
         print(f"{path} exception: {e}")
         return None, None
-
 
 def load_core_silver() -> pl.DataFrame:
     replicates_path = SILVER_DIR / "replicates"
