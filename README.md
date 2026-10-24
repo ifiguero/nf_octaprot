@@ -12,7 +12,7 @@ nf_octaprot is a Nextflow DSL2 pipeline for discovering proteomics datasets from
 
 ### Required minimum
 - **Nextflow (DSL2)**: Orchestrator. Default executor is **Kubernetes (`k8s`)**.
-- **Kubernetes/K3s**: Target execution backend; K3s is suitable for single-node local processing.
+- **Kubernetes/k3s**: Target execution backend; k3s is suitable for single-node local processing.
 
 ### Optional
 - **Docker**: Required to build Dockerfiles are present in `lib/Dockerfile_*` locally.
@@ -20,7 +20,7 @@ nf_octaprot is a Nextflow DSL2 pipeline for discovering proteomics datasets from
 - **DuckDB**: To query parquet silver storage.
 
 ## Quick Start
-1. **Install unnecessary Prerequisites**: A working nexflow with K3s is bare minimum.
+1. **Install unnecessary Prerequisites**: A working nexflow with k3s is bare minimum.
 2. **Prepare input data**: Put CSVs in appropriate `input/stage*/` dirs (current dataset is from `assets/*.zip`).
 5. **Execute workflow**: `nextflow run main.nf --stage stage1` (and then stage2/stage3).
 6. **Inspect results**: Check `output/silver/`, `output/bronze/`, `output/dump/`.
@@ -32,7 +32,7 @@ nf_octaprot is a Nextflow DSL2 pipeline for discovering proteomics datasets from
 - **Linux** or **macOS** (not tested).
 - **Java 17 or later**: Required by Nextflow.
 - **Nextflow**: Version `24.04.0` or later.
-- **K3s**: Lightweight Kubernetes for local, single-node testing.
+- **k3s**: Lightweight Kubernetes for local, single-node testing.
 - **Docker**: Required to build container images.
 - **uv**: Python package and dependency manager.
 - **Disk space**: Approximately 500 GB free for the current dataset.
@@ -77,20 +77,28 @@ All Python scripts use `uv` in their shebang to automatically resolve dependenci
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv --version
 ```
+### DuckDB (Database CLI engine)
 
-Python dependencies are defined in the headers of the individual scripts and are managed by `uv`.
-
-### K3s (single-node Kubernetes)
-
-K3s is recommended for local testing with the Nextflow Kubernetes executor.
-
-Install K3s:
 
 ```bash
-curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644 --disable traefik
+curl https://install.duckdb.org | bash
+```
+### Docker
+
+See [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+
+
+### k3s (single-node Kubernetes)
+
+k3s is recommended for local testing with the Nextflow Kubernetes executor.
+
+Install k3s:
+
+```bash
+curl -sfL https://get.k3s.io | sh -
 ```
 
-Alternatively, configure `/etc/rancher/k3s/config.yaml`:
+Edit `/etc/rancher/k3s/config.yaml` with this content:
 
 ```yaml
 write-kubeconfig-mode: "0644"
@@ -98,7 +106,7 @@ disable:
   - traefik
 ```
 
-Restart K3s after changing the configuration.
+Restart k3s after changing the configuration.
 
 Configure kubeconfig access:
 
