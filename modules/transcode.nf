@@ -1,7 +1,7 @@
 
 process DOWNLOAD_TRANSCODE_PUBLISH {
     storeDir "${params.bronze_dir}"
-    maxForks 6
+    maxForks params.maxFTPcon
     cpus 8
     memory '16 GB'
 

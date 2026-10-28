@@ -16,7 +16,7 @@ process REPOSITORY_TO_PARQUET {
 
 process REPOSITORY_FILES_EXTRACT {
     storeDir "${params.silver_dir}"
-    maxForks 1
+    maxForks params.maxFTPcon
 
     input:
     path repository
