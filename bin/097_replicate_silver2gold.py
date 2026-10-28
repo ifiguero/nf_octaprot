@@ -10,7 +10,7 @@ import polars as pl
 BRONZE_DIR = Path(os.getenv("BRONZE_DIR", "bronze"))
 SILVER_DIR = Path(os.getenv("SILVER_DIR", "silver"))
 GOLD_DIR = Path(os.getenv("GOLD_DIR", "."))
-BATCH_SIZE = int(os.getenv("BATCH_SIZE", "50"))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "4"))
 COMPRESSION = os.getenv("PARQUET_COMPRESSION", "zstd")
 
 SAMPLE_METADATA_ACCESSIONS = [
