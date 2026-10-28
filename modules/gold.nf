@@ -1,7 +1,6 @@
 
 process GOLD_REPLICATES {
     publishDir "${params.gold_dir}", mode: 'copy', overwrite: true
-    memory '128 GB'
 
     input:
     val all_done

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env -S uv run --with polars --with pyarrow python3
 
 import os
