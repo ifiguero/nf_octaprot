@@ -85,7 +85,7 @@ def load_table(table_name: str) -> pl.DataFrame:
 COMPRESSION_EXTENSIONS = [".gz", ".zip", ".7z", ".bz2", ".xz"]
 SAMPLE_EXTENSIONS = [".raw", ".d", ".mgf", ".mzml", ".wiff", ".wiff2"]
 
-MAX_RETRIES = 5
+MAX_RETRIES = 10
 FTP_TIMEOUT = 15
 
 def output_name(sample_id, remote_path):
