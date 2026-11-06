@@ -19,10 +19,10 @@ TABLE_TO_PARQUET = {
 SOFTWARE = ("msfragger", "sage", "alphadia", "diann")
 
 PSM_COLUMNS = [
+    "software_id",
     "replicate_id",
     "peptide",
     "charge",
-    "software",
     "scan_number",
     "retention_time",
     "confidence",
@@ -96,9 +96,9 @@ def parse_msfragger(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
 
     return df.select(
         pl.lit(replicate_id).alias("replicate_id"),
+        pl.lit("msfragger").alias("software_id"),
         pl.col("peptide").cast(pl.String),
         number("charge", pl.Int16).alias("charge"),
-        pl.lit("msfragger").alias("software"),
         number("scannum", pl.Int64).alias("scan_number"),
         number("retention_time").alias("retention_time"),
         number("expectscore").alias("confidence"),
@@ -110,9 +110,9 @@ def parse_sage(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
 
     return df.select(
         pl.lit(replicate_id).alias("replicate_id"),
+        pl.lit("sage").alias("software_id"),
         pl.col("peptide").cast(pl.String),
         number("charge", pl.Int16).alias("charge"),
-        pl.lit("sage").alias("software"),
         number("scannr", pl.Int64).alias("scan_number"),
         number("rt").alias("retention_time"),
         number("posterior_error").alias("confidence"),
@@ -132,9 +132,9 @@ def parse_alphadia(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
 
     return df.select(
         pl.lit(replicate_id).alias("replicate_id"),
+        pl.lit("alphadia").alias("software_id"),
         pl.col("precursor.sequence").cast(pl.String).alias("peptide"),
         number("precursor.charge", pl.Int16).alias("charge"),
-        pl.lit("alphadia").alias("software"),
         empty_scan().alias("scan_number"),
         number("precursor.rt.observed").alias("retention_time"),
         number("precursor.proba").alias("confidence"),
@@ -149,9 +149,9 @@ def parse_diann(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
 
     return df.select(
         pl.lit(replicate_id).alias("replicate_id"),
+        pl.lit("diann").alias("software_id"),
         pl.col("Modified.Sequence").cast(pl.String).alias("peptide"),
         number("Precursor.Charge", pl.Int16).alias("charge"),
-        pl.lit("diann").alias("software"),
         empty_scan().alias("scan_number"),
         number("RT").alias("retention_time"),
         number("PEP").alias("confidence"),
@@ -265,22 +265,18 @@ def normalize(psm: pl.DataFrame, scan_rt: pl.DataFrame) -> pl.DataFrame:
 
     return psm.select(
         pl.col("replicate_id").cast(pl.String),
+        pl.col("software_id").cast(pl.String),
         pl.col("peptide").cast(pl.String),
         pl.col("charge").cast(pl.Int16, strict=False),
-        pl.col("software").cast(pl.String),
         pl.col("scan_number").cast(pl.Int64, strict=False),
         pl.col("retention_time").cast(pl.Float64, strict=False),
         pl.col("confidence").cast(pl.Float64, strict=False),
     ).select(PSM_COLUMNS)
 
 
-def process(
-    replicate_id: str,
-    results_file: str,
-    software: str
-) -> pl.DataFrame:
+def process(myarg) -> pl.DataFrame:
 
-    source = read_input(results_file, software)
+    source = read_input(myarg.results, myarg.software_id)
 
 
     routines = {
@@ -290,9 +286,9 @@ def process(
         "diann": parse_diann,
     }
 
-    raw_data = routines[software](source, replicate_id)
+    raw_data = routines[myarg.software_id](source, myarg.replicate_id)
 
-    scan_rt = load_scan_rt_table(replicate_id)
+    scan_rt = load_scan_rt_table(myarg.replicate_id)
 
     normalized_data = normalize(raw_data, scan_rt)
 
@@ -304,17 +300,9 @@ def main() -> None:
         description="Convert search-engine results into canonical PSM Parquet."
     )
 
-    mode = parser.add_mutually_exclusive_group(required=True)
 
-    for software in SOFTWARE:
-        mode.add_argument(
-            f"--{software}",
-            dest="software",
-            action="store_const",
-            const=software,
-        )
-
-    parser.add_argument("id", help="Sample identifier")
+    parser.add_argument("replicate_id", help="Replicate identifier")
+    parser.add_argument("software_id", help="Software identifier")
     parser.add_argument("results", type=Path, help="Existing results file")
 
     args = parser.parse_args()
@@ -322,7 +310,7 @@ def main() -> None:
     if not args.results.is_file():
         parser.error(f"Results file does not exist: {args.results}")
 
-    psm = process(args.id, args.results, args.software)
+    psm = process(args)
 
     output_path = Path(f"{args.id}.parquet")
 

@@ -42,14 +42,16 @@ def parse_time_output(path: Path) -> dict[str, any]:
     return data
 
 
-def process(replicate_id: str, filename: Path) -> pl.DataFrame:
+def process(myarg):
     """Processes the raw time file and returns a strongly-typed DataFrame."""
-    parsed_data = parse_time_output(filename)
-    parsed_data["replicate_id"] = replicate_id
+    parsed_data = parse_time_output(myarg.timing)
+    parsed_data["replicate_id"] = myarg.replicate_id
+    parsed_data["software_id"] = myarg.software_id
 
     # Define strict schema for Parquet joining purposes
     schema = {
         "replicate_id": pl.String,
+        "software_id": pl.String,
         "command": pl.String,
         "user_time_seconds": pl.Float64,
         "system_time_seconds": pl.Float64,
@@ -80,15 +82,16 @@ def main() -> None:
         description="Parse GNU time outputs into canonical benchmarking Parquet."
     )
 
-    parser.add_argument("id", help="Sample identifier (e.g., PXD010357_20160304)")
-    parser.add_argument("filename", type=Path, help="Input time log file")
+    parser.add_argument("replicate_id", help="Replicate identifier")
+    parser.add_argument("software_id", help="Software identifier")
+    parser.add_argument("timing", type=Path, help="Existing timing file")
 
     args = parser.parse_args()
 
     if not args.filename.is_file():
         parser.error(f"Time metrics file does not exist: {args.filename}")
 
-    metrics_df = process(args.id, args.filename)
+    metrics_df = process(args)
 
     metrics_df.write_parquet(f"{args.id}.parquet", compression="zstd")
 

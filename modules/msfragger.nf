@@ -1,5 +1,5 @@
 
-process MSFRAGGER_CONFIG {
+process MSFRAGGER_PREPARE {
     cpus 8
     memory '64 GB'
     publishDir "${params.silver_dir}/fasta_peptide", mode: 'copy', pattern: "*.parquet"
@@ -7,12 +7,24 @@ process MSFRAGGER_CONFIG {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
     input:
-    path fasta
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label)
 
     output:
-    tuple path("fragger.params"),
-          path(fasta),
-          path("${fasta}.1.pepindex")
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          path("fragger.params"),
+          path("${fasta}.1.prepared")
 
     script:
     """
@@ -27,14 +39,14 @@ process MSFRAGGER_CONFIG {
                 database_name = ${fasta}
                 num_threads = 8
 
-                precursor_mass_lower = -20
-                precursor_mass_upper = 20
+                precursor_mass_lower = -${precursor}
+                precursor_mass_upper = ${precursor}
                 precursor_mass_units = 1
 
-                precursor_true_tolerance = 20
+                precursor_true_tolerance = ${precursor}
                 precursor_true_units = 1
 
-                fragment_mass_tolerance = 20
+                fragment_mass_tolerance = ${fragment}
                 fragment_mass_units = 1
 
                 isotope_error = 0/1/2/3
@@ -44,7 +56,10 @@ process MSFRAGGER_CONFIG {
                 search_enzyme_butnotafter = P
 
                 num_enzyme_termini = 2
-                allowed_missed_cleavage = 2
+                allowed_missed_cleavage = ${missed}
+
+                digest_min_length = ${min_len}
+                digest_max_length = ${max_len}
 
                 output_format = tsv_pepxml_pin
                 output_report_topN = 1
@@ -56,11 +71,13 @@ process MSFRAGGER_CONFIG {
     cat fragger.params
 
     echo "[nf_msfragger_db] Building MSFragger peptide index"
-    /usr/bin/time -v -o runtime.tsv java -Xmx64g -jar /opt/msfragger/msfragger.jar fragger.params
+    java -Xmx64g -jar /opt/msfragger/msfragger.jar fragger.params
     echo "[nf_msfragger_db] Index exit code: \$?"
 
     echo "[nf_msfragger_db] Database files:"
     ls -lah
+
+    mv "${fasta}.1.pepindex" "${fasta}.1.prepared"
 
     echo "[nf_msfragger_db] Finish"
     """
@@ -75,16 +92,25 @@ process MSFRAGGER_PSM {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_msfragger'
 
     input:
-    tuple path(fragger_params),
-          path(fasta),
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          path(fragger_params),
           path(pepindex),
-          val(id),
+          val(replicate_id),
           path(mzml_gz)
 
   output:
-  tuple val(id),
-        path("${id}.results.tsv"),
-        path("${id}.runtime.tsv")
+  tuple val('msfragger'),
+        val(replicate_id),
+        val(fasta.baseName),
+        val(grid_label),
+        path("results.tsv"),
+        path("runtime.tsv")
 
     script:
     """
@@ -94,8 +120,9 @@ process MSFRAGGER_PSM {
     cat "${fragger_params}"
 
     echo "[nf_msfragger] FASTA:"
+    cp "${pepindex}" "${pepindex.baseName}.pepindex"
     ls -lh "${fasta}"
-    ls -lh "${pepindex}"
+    ls -lh "${pepindex.baseName}*"
 
     echo "[nf_msfragger] mzML:"
     ls -lh "${mzml_gz}"
@@ -109,7 +136,7 @@ process MSFRAGGER_PSM {
 
     echo "[nf_msfragger] MSFragger search"
 
-    /usr/bin/time -v -o "${id}.runtime.tsv" java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
+    /usr/bin/time -v -o "runtime.tsv" java -Xmx64g -jar /opt/msfragger/msfragger.jar "${fragger_params}" "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] MSFragger exit code: \$?"
 
@@ -117,7 +144,7 @@ process MSFRAGGER_PSM {
     rm -f "${mzml_gz.baseName}"
 
     echo "[nf_msfragger] Rename output:"
-    mv "${id}.tsv" "${id}.results.tsv"
+    mv "${replicate_id}.tsv" "results.tsv"
 
     echo "[nf_msfragger] Finish"
     """

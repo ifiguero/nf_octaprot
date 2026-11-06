@@ -1,4 +1,4 @@
-process SAGE_CONFIG {
+process SAGE_PREPARE {
 
     cpus 8
     memory '16 GB'
@@ -6,10 +6,22 @@ process SAGE_CONFIG {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_sage'
 
     input:
-    path fasta
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label)
 
     output:
-    path(fasta)
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label)
 
     script: // placeholder
     """
@@ -26,13 +38,22 @@ process SAGE_PSM {
 
     input:
     tuple path(fasta),
-          val(id),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          val(replicate_id),
           path(mzml_gz)
 
     output:
-    tuple val(id),
-          path("${id}.results.tsv"),
-          path("${id}.runtime.tsv")
+    tuple val('sage'),
+          val(replicate_id),
+          val(fasta.baseName),
+          val(grid_label),
+          path("results.tsv"),
+          path("runtime.tsv")
 
     script:
     """
@@ -49,17 +70,18 @@ process SAGE_PSM {
     cat > sage.json <<EOF
     {
       "database": {
-        "fasta": "UP000005640_9606.fasta"
+        "fasta": "${fasta}"
       },
       "precursor_tol": {
-        "ppm": [-20.0, 20.0]
+        "ppm": [-${precursor}, ${precursor}]
       },
       "fragment_tol": {
-        "ppm": [-20.0, 20.0]
+        "ppm": [-${fragment}, ${fragment}]
       },
       "enzyme": {
-        "name": "trypsin",
-        "missed_cleavages": 2
+        "missed_cleavages": ${missed},
+        "min_len": ${min_len},
+        "max_len": ${max_len}
       },
       "search": {
         "generate_decoys": true
@@ -72,7 +94,7 @@ EOF
 
     echo "[SAGE_PSM] Running Sage"
 
-    /usr/bin/time -v -o "${id}.runtime.tsv" sage sage.json "${mzml_gz.baseName}" \
+    /usr/bin/time -v -o "runtime.tsv" sage sage.json "${mzml_gz.baseName}" \
         --fasta "${fasta}" \
         --output_directory .
 
@@ -80,7 +102,7 @@ EOF
     rm -f "${mzml_gz.baseName}"
 
     echo "[SAGE_PSM] Rename Output:"
-    mv results.sage.tsv "${id}.results.tsv"
+    mv results.sage.tsv "results.tsv"
 
     echo "[SAGE_PSM] Finish"
     """

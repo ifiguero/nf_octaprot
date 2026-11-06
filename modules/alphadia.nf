@@ -1,4 +1,4 @@
-process ALPHADIA_CONFIG {
+process ALPHADIA_PREPARE {
 
     cpus 8
     memory '128 GB'
@@ -6,12 +6,24 @@ process ALPHADIA_CONFIG {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
     input:
-    path fasta
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label)
 
     output:
-    tuple path("alphadia.yaml"),
-          path(fasta),
-           path("report/speclib.hdf")
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          path("alphadia.yaml"),
+          path("report/speclib.hdf")
 
     script:
     """
@@ -22,23 +34,21 @@ process ALPHADIA_CONFIG {
 
     cat > alphadia.yaml <<EOF
 search:
-  target_ms1_tolerance: 20
-  target_ms2_tolerance: 20
+  target_ms1_tolerance: ${precursor}
+  target_ms2_tolerance: ${fragment}
+  min_peptide_length: ${min_len}
+  max_peptide_length: ${max_len}
 
 library_prediction:
   enabled: true
-  missed_cleavages: 2
+  enzyme: trypsin
+  missed_cleavages: ${missed}
 
 fdr:
   fdr: 0.01
 
 general:
   thread_count: 8
-
-search_output:
-  file_format: "tsv"
-  precursor_level_lfq: true
-  peptide_level_lfq: true
 EOF
 
     echo "[nf_alphadia_config] Configuration:"
@@ -64,16 +74,25 @@ process ALPHADIA_PSM {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_alphadia'
 
     input:
-    tuple path(alphadia_conf),
-          path(fasta),
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          path(alphadia_conf),
           path(speclib),
-          val(id),
+          val(replicate_id),
           path(mzml_gz)
 
     output:
-    tuple val(id),
-          path("${id}.results.tsv"),
-          path("${id}.runtime.tsv")
+    tuple val('alphadia'),
+          val(replicate_id),
+          val(fasta.baseName),
+          val(grid_label),
+          path("results.tsv"),
+          path("runtime.tsv")
 
     script:
     """
@@ -94,7 +113,7 @@ process ALPHADIA_PSM {
 
     echo "[nf_alphadia] Running AlphaDIA"
 
-    /usr/bin/time -v -o "${id}.runtime.tsv" alphadia \
+    /usr/bin/time -v -o "runtime.tsv" alphadia \
         --config "${alphadia_conf}" \
         --library "${speclib}" \
         --file "${mzml_gz.baseName}" \
@@ -102,9 +121,9 @@ process ALPHADIA_PSM {
 
     echo "[nf_alphadia] Cleanup"
     rm -f "${mzml_gz.baseName}"
-    
+
     echo "[nf_alphadia] Rename Output:"
-    mv report/precursors.tsv "${id}.results.tsv"
+    mv report/precursors.tsv "results.tsv"
 
     echo "[nf_alphadia] Finish"
     """

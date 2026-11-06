@@ -1,4 +1,4 @@
-process DIANN_CONFIG {
+process DIANN_PREPARE {
 
     cpus 8
     memory '16 GB'
@@ -6,10 +6,23 @@ process DIANN_CONFIG {
     container 'dev.ilab.usm.cl/dia/nf_octaprot_diann'
 
     input:
-    path fasta
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label)
 
     output:
-    tuple path(fasta), path("*.speclib")
+    tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
+          path("*.speclib")
 
     script:
     """
@@ -18,7 +31,7 @@ process DIANN_CONFIG {
     echo "[nf_diann_config] FASTA:"
     ls -lh "${fasta}"
 
-    /usr/bin/time -v -o runtime.tsv diann --fasta ${fasta} --fasta-search --predictor --gen-spec-lib --threads 8 --out-lib ${fasta.baseName}.speclib --min-pep-len 5  --max-pep-len 50 --missed-cleavages 2 --unimod4
+    diann --fasta ${fasta} --fasta-search --predictor --gen-spec-lib --threads 8 --out-lib ${fasta.baseName}.speclib --min-pep-len ${min_len}  --max-pep-len ${max_len} --missed-cleavages ${missed} --unimod4
 
     echo "[nf_diann_config] Spectral Library:"
     ls -lh *.speclib
@@ -37,14 +50,24 @@ process DIANN_PSM {
 
     input:
     tuple path(fasta),
+          val(precursor),
+          val(fragment),
+          val(missed),
+          val(min_len),
+          val(max_len),
+          val(grid_label),
           path(speclib),
-          val(id),
+          val(replicate_id),
           path(mzml_gz)
 
     output:
-    tuple val(id),
-          path("${id}.results.parquet"),
-          path("${id}.runtime.tsv")
+    tuple val('diann'),
+          val(replicate_id),
+          val(fasta.baseName),
+          val(grid_label),
+          path("results.parquet"),
+          path("runtime.tsv")
+
 
     script:
     """
@@ -64,7 +87,7 @@ process DIANN_PSM {
 
     echo "[nf_diann] Running DIA-NN"
 
-    /usr/bin/time -v -o "${id}.runtime.tsv" diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}" --out "${id}.results.parquet"
+    /usr/bin/time -v -o "runtime.tsv" diann --threads 8 --f "${mzml_gz.baseName}" --lib "${speclib}" --fasta "${fasta}"  --mass-acc ${precursor}  --mass-acc-ms2 ${fragment} --out "results.parquet"
 
     echo "[nf_diann] Exit code: \$?"
 
