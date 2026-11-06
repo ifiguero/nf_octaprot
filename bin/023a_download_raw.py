@@ -16,6 +16,7 @@ import polars as pl
 import ftputil
 import hashlib
 import logging
+import socket
 import time
 import sys
 import os
@@ -148,14 +149,13 @@ def parse_ftp_url(url: str):
         "path": parsed.path.rstrip("/") or "/",
     }
 
-def open_ftp(info, timeout=FTP_TIMEOUT):
+def open_ftp(info):
 
     if "massive-ftp.ucsd.edu" in info["host"]:
         session = ftputil.session.session_factory(
             base_class=FTP_TLS,
             port=info["port"],
             encoding="utf-8",
-            timeout=timeout,
         )
     else:
         session = ftputil.session.session_factory(
@@ -168,7 +168,6 @@ def open_ftp(info, timeout=FTP_TIMEOUT):
         info["user"],
         info["password"],
         session_factory=session,
-        timeout=timeout,
     )
 
 def download_directory(ftp, remote_dir, output_dir):
@@ -221,6 +220,7 @@ def download_sample(sample, basepath='stage'):
     basepath = Path(basepath)
 
     ftp_info["path"] = sample["remote_path"]
+    socket.setdefaulttimeout(FTP_TIMEOUT)
 
     last = None
     for attempt in range(MAX_RETRIES):
