@@ -84,7 +84,8 @@ def load_table(table_name: str) -> pl.DataFrame:
 COMPRESSION_EXTENSIONS = [".gz", ".zip", ".7z", ".bz2", ".xz"]
 SAMPLE_EXTENSIONS = [".raw", ".d", ".mgf", ".mzml", ".wiff", ".wiff2"]
 
-MAX_RETRIES = 3
+MAX_RETRIES = 5
+FTP_TIMEOUT = 15
 
 def output_name(sample_id, remote_path):
 
@@ -147,13 +148,14 @@ def parse_ftp_url(url: str):
         "path": parsed.path.rstrip("/") or "/",
     }
 
-def open_ftp(info):
+def open_ftp(info, timeout=FTP_TIMEOUT):
 
     if "massive-ftp.ucsd.edu" in info["host"]:
         session = ftputil.session.session_factory(
             base_class=FTP_TLS,
             port=info["port"],
             encoding="utf-8",
+            timeout=timeout,
         )
     else:
         session = ftputil.session.session_factory(
@@ -166,6 +168,7 @@ def open_ftp(info):
         info["user"],
         info["password"],
         session_factory=session,
+        timeout=timeout,
     )
 
 def download_directory(ftp, remote_dir, output_dir):
@@ -250,7 +253,7 @@ def download_sample(sample, basepath='stage'):
             )
 
             if attempt + 1 < MAX_RETRIES:
-                time.sleep(5) # wait 5 seconds to reconect
+                time.sleep(FTP_TIMEOUT) # wait 5 seconds to reconect
 
     raise RuntimeError(last)
 
