@@ -250,7 +250,7 @@ def download_sample(sample, basepath='stage'):
             )
 
             if attempt + 1 < MAX_RETRIES:
-                time.sleep(2 ** attempt)
+                time.sleep(5) # wait 5 seconds to reconect
 
     raise RuntimeError(last)
 
