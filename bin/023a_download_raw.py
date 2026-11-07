@@ -16,7 +16,6 @@ import polars as pl
 import ftputil
 import hashlib
 import logging
-import socket
 import time
 import sys
 import os
@@ -86,7 +85,7 @@ COMPRESSION_EXTENSIONS = [".gz", ".zip", ".7z", ".bz2", ".xz"]
 SAMPLE_EXTENSIONS = [".raw", ".d", ".mgf", ".mzml", ".wiff", ".wiff2"]
 
 MAX_RETRIES = 10
-FTP_TIMEOUT = 15
+FTP_TIMEOUT = 30
 
 def output_name(sample_id, remote_path):
 
@@ -220,7 +219,6 @@ def download_sample(sample, basepath='stage'):
     basepath = Path(basepath)
 
     ftp_info["path"] = sample["remote_path"]
-    socket.setdefaulttimeout(FTP_TIMEOUT)
 
     last = None
     for attempt in range(MAX_RETRIES):
