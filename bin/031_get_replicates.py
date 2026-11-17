@@ -73,7 +73,7 @@ def main() -> int:
     mode = sys.argv[1].lower()
     parquet_path = Path(sys.argv[2])
     if len(sys.argv) == 4:
-        max_replicates = intval(sys.argv[3])
+        max_replicates = int(sys.argv[3])
     else:
         max_replicates = 0
 
