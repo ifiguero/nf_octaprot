@@ -128,8 +128,8 @@ def main() -> int:
             print(replicate_id)
             curr_replicates += 1
 
-    if max_replicates > 0 and curr_replicates >= max_replicates:
-        break
+        if max_replicates > 0 and curr_replicates >= max_replicates:
+            break
 
     return 0
 
