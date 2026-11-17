@@ -26,7 +26,7 @@ process LIST_DIA_REPLICATES {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    031_get_replicates.py dia ${parquet} ${params.max_replicates ? "${params.max_replicates}" : ""}
+    031_get_replicates.py dia ${parquet} ${max_replicates ? "${max_replicates}" : ""}
     """
 }
 
@@ -42,7 +42,7 @@ process LIST_DDA_REPLICATES {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    031_get_replicates.py dda ${parquet} ${params.max_replicates ? "${params.max_replicates}" : ""}
+    031_get_replicates.py dda ${parquet} ${max_replicates ? "${max_replicates}" : ""}
     """
 }
 
