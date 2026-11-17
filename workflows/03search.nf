@@ -121,6 +121,8 @@ workflow WORKFLOW_SEARCH {
 
         mzml_combined = mzml_dia.concat(mzml_dda)
 
+        mzml_combined.count().view { "Total mzML files: $it" }
+
         MSFRAGGER_SEARCH(config_ch, mzml_combined)
         DIANN_SEARCH(config_ch, mzml_combined)
         SAGE_SEARCH(config_ch, mzml_combined)
@@ -129,12 +131,12 @@ workflow WORKFLOW_SEARCH {
 }
 
 workflow MSFRAGGER_SEARCH {
-
     take:
         config_ch
         mzml_ch
 
     main:
+        mzml_ch.view { "mzML input: $it" }
         prepared_ch = MSFRAGGER_PREPARE(config_ch)
 
         job_queue = prepared_ch.combine(mzml_ch)
