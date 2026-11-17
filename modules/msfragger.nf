@@ -122,7 +122,6 @@ process MSFRAGGER_PSM {
     echo "[nf_msfragger] FASTA:"
     cp "${pepindex}" "${pepindex.baseName}.pepindex"
     ls -lh "${fasta}"
-    ls -lh "${pepindex.baseName}*"
 
     echo "[nf_msfragger] mzML:"
     ls -lh "${mzml_gz}"
