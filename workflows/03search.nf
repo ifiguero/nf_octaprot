@@ -99,7 +99,7 @@ workflow WORKFLOW_SEARCH {
 
     } else {
         // Deep execution: all enabled engines.
-        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets)
+        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets, null)
             .splitText()
             .map { it.trim() }
             .filter { it }
@@ -107,7 +107,7 @@ workflow WORKFLOW_SEARCH {
                 tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
             }
 
-        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets)
+        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets, null)
             .splitText()
             .map { it.trim() }
             .filter { it }
