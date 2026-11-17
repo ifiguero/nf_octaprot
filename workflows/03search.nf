@@ -96,6 +96,7 @@ workflow WORKFLOW_SEARCH {
             }
 
         mzml_combined = mzml_dia.concat(mzml_dda)
+        mzml_combined.count().view { "Total mzML files: $it" }
 
         MSFRAGGER_SEARCH(config_ch, mzml_combined)
 
@@ -121,7 +122,6 @@ workflow WORKFLOW_SEARCH {
 
         mzml_combined = mzml_dia.concat(mzml_dda)
 
-        mzml_combined.count().view { "Total mzML files: $it" }
 
         MSFRAGGER_SEARCH(config_ch, mzml_combined)
         DIANN_SEARCH(config_ch, mzml_combined)
