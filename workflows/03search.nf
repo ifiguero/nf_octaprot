@@ -15,6 +15,28 @@ workflow WORKFLOW_SEARCH {
         """
     }
 
+
+    def min_peptide_len = params.precursor_tol instanceof List ?
+        params.precursor_tol :
+        params.precursor_tol.toString().tokenize(',').collect { it.toInteger() }
+
+    def max_peptide_len = params.fragment_tol instanceof List ?
+        params.fragment_tol :
+        params.fragment_tol.toString().tokenize(',').collect { it.toInteger() }
+
+
+    def missed_cleavages = params.missed_cleavages instanceof List ?
+        params.missed_cleavages :
+        params.missed_cleavages.toString().tokenize(',').collect { it.toInteger() }
+
+    def min_peptide_len = params.min_peptide_len instanceof List ?
+        params.min_peptide_len :
+        params.min_peptide_len.toString().tokenize(',').collect { it.toInteger() }
+
+    def max_peptide_len = params.max_peptide_len instanceof List ?
+        params.max_peptide_len :
+        params.max_peptide_len.toString().tokenize(',').collect { it.toInteger() }
+
    //* 1. FASTA INPUT
     fasta_files = Channel.fromPath(params.input_fasta)
 
