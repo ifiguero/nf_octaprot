@@ -95,7 +95,9 @@ workflow WORKFLOW_SEARCH {
                 tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
             }
 
-        MSFRAGGER_SEARCH(config_ch, mzml_dia, mzml_dda)
+        mzml_combined = mzml_dia.concat(mzml_dda)
+
+        MSFRAGGER_SEARCH(config_ch, mzml_combined)
 
     } else {
         // Deep execution: all enabled engines.
@@ -115,9 +117,13 @@ workflow WORKFLOW_SEARCH {
                 tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
             }
 
-        MSFRAGGER_SEARCH(config_ch, mzml_dia, mzml_dda)
-        DIANN_SEARCH(config_ch, mzml_dia, mzml_dda)
-        SAGE_SEARCH(config_ch, mzml_dia, mzml_dda)
+
+
+        mzml_combined = mzml_dia.concat(mzml_dda)
+
+        MSFRAGGER_SEARCH(config_ch, mzml_combined)
+        DIANN_SEARCH(config_ch, mzml_combined)
+        SAGE_SEARCH(config_ch, mzml_combined)
         ALPHADIA_SEARCH(config_ch, mzml_dia)
     }
 }
@@ -126,13 +132,10 @@ workflow MSFRAGGER_SEARCH {
 
     take:
         config_ch
-        mzml_1_ch
-        mzml_2_ch
+        mzml_ch
 
     main:
         prepared_ch = MSFRAGGER_PREPARE(config_ch)
-
-        mzml_ch = mzml_1_ch.concat(mzml_2_ch)
 
         job_queue = prepared_ch.combine(mzml_ch)
 
@@ -147,13 +150,10 @@ workflow DIANN_SEARCH {
 
     take:
         config_ch
-        mzml_1_ch
-        mzml_2_ch
+        mzml_ch
 
     main:
         prepared_ch = DIANN_PREPARE(config_ch)
-
-        mzml_ch = mzml_1_ch.concat(mzml_2_ch)
 
         job_queue = prepared_ch.combine(mzml_ch)
 
@@ -168,14 +168,11 @@ workflow SAGE_SEARCH {
 
     take:
         config_ch
-        mzml_1_ch
-        mzml_2_ch
+        mzml_ch
 
     main:
 
         prepared_ch = SAGE_PREPARE(config_ch)
-
-        mzml_ch = mzml_1_ch.concat(mzml_2_ch)
 
         job_queue = prepared_ch.combine(mzml_ch)
 
