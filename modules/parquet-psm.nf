@@ -17,6 +17,7 @@ process SAVE_PSM {
 
     script:
     """
+    export SILVER_DIR="${params.silver_dir}"
     032_save_psm.py \
         --software_id "${software_id}" \
         --replicate_id "${replicate_id}" \
@@ -45,6 +46,7 @@ process SAVE_RUNTIME {
 
     script:
     """
+    export SILVER_DIR="${params.silver_dir}"
     033_save_time.py \
         --software_id "${software_id}" \
         --replicate_id "${replicate_id}" \
