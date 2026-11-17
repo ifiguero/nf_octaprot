@@ -18,6 +18,7 @@ process LIST_DIA_REPLICATES {
 
     input:
     path parquet
+    val max_replicates
 
     output:
     stdout
@@ -25,7 +26,7 @@ process LIST_DIA_REPLICATES {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    031_get_replicates.py dia ${parquet}
+    031_get_replicates.py dia ${parquet} ${params.max_replicates ? "${params.max_replicates}" : ""}
     """
 }
 
@@ -33,6 +34,7 @@ process LIST_DDA_REPLICATES {
 
     input:
     path parquet
+    val max_replicates
 
     output:
     stdout
@@ -40,7 +42,7 @@ process LIST_DDA_REPLICATES {
     script:
     """
     export SILVER_DIR="${params.silver_dir}"
-    031_get_replicates.py dda ${parquet}
+    031_get_replicates.py dda ${parquet} ${params.max_replicates ? "${params.max_replicates}" : ""}
     """
 }
 

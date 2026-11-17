@@ -76,48 +76,10 @@ workflow WORKFLOW_SEARCH {
     //* 3. Replicate channel
     replicate_parquets = Channel.fromPath("${params.silver_dir}/replicates/*.parquet")
 
-    dia_ids = LIST_DIA_REPLICATES(replicate_parquets)
-    dda_ids = LIST_DDA_REPLICATES(replicate_parquets)
-
-     //* 4. Mode selection
 
     if (params.search_mode == 'wide') {
         // Wide parameter exploration: Single sample, MSFragger only.
-        mzml_dia = dia_ids
-            .map { ids_file ->
-
-                def replicate_id = ids_file.text
-                    .readLines()
-                    .collect { it.trim() }
-                    .find { it }
-
-                if (!replicate_id)
-                    return null
-
-                tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
-            }
-            .filter { it != null }
-
-        mzml_dda = dda_ids
-            .map { ids_file ->
-
-                def replicate_id = ids_file.text
-                    .readLines()
-                    .collect { it.trim() }
-                    .find { it }
-
-                if (!replicate_id)
-                    return null
-
-                tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
-            }
-            .filter { it != null }
-
-        MSFRAGGER_SEARCH(config_ch, mzml_dia, mzml_dda)
-
-    } else {
-        // Deep execution: all enabled engines.
-        mzml_dia = dia_ids
+        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets, 1)
             .splitText()
             .map { it.trim() }
             .filter { it }
@@ -125,7 +87,27 @@ workflow WORKFLOW_SEARCH {
                 tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
             }
 
-        mzml_dda = dda_ids
+        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets, 1)
+            .splitText()
+            .map { it.trim() }
+            .filter { it }
+            .map { replicate_id ->
+                tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
+            }
+
+        MSFRAGGER_SEARCH(config_ch, mzml_dia, mzml_dda)
+
+    } else {
+        // Deep execution: all enabled engines.
+        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets)
+            .splitText()
+            .map { it.trim() }
+            .filter { it }
+            .map { replicate_id ->
+                tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
+            }
+
+        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets)
             .splitText()
             .map { it.trim() }
             .filter { it }

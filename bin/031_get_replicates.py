@@ -65,13 +65,19 @@ def get_acquisition(
 
 
 def main() -> int:
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
         fail(
-            f"Usage: {Path(sys.argv[0]).name} [dia|dda] <replicates.parquet>"
+            f"Usage: {Path(sys.argv[0]).name} [dia|dda] <replicates.parquet> [max_replicates=all]"
         )
 
     mode = sys.argv[1].lower()
     parquet_path = Path(sys.argv[2])
+    if len(sys.argv) == 4:
+        max_replicates = Path(sys.argv[3])
+    else:
+        max_replicates = 0
+
+
 
     if mode not in {"dia", "dda"}:
         fail("Mode must be 'dia' or 'dda'")
@@ -110,6 +116,8 @@ def main() -> int:
         .to_list()
     )
 
+    curr_replicates = 0
+
     if not ids:
         fail("No replicate ids found")
 
@@ -118,6 +126,10 @@ def main() -> int:
 
         if acquisition is not None and acquisition.strip().lower() == mode:
             print(replicate_id)
+            curr_replicates += 1
+
+    if max_replicates > 0 and curr_replicates >= max_replicates:
+        break
 
     return 0
 
