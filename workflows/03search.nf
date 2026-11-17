@@ -16,11 +16,11 @@ workflow WORKFLOW_SEARCH {
     }
 
 
-    def min_peptide_len = params.precursor_tol instanceof List ?
+    def precursor_tol = params.precursor_tol instanceof List ?
         params.precursor_tol :
         params.precursor_tol.toString().tokenize(',').collect { it.toInteger() }
 
-    def max_peptide_len = params.fragment_tol instanceof List ?
+    def fragment_tol = params.fragment_tol instanceof List ?
         params.fragment_tol :
         params.fragment_tol.toString().tokenize(',').collect { it.toInteger() }
 
@@ -42,11 +42,11 @@ workflow WORKFLOW_SEARCH {
 
 
    //* 2. PARAMETER GRID
-    parameter_grid = params.precursor_tol.collectMany { precursor ->
-        params.fragment_tol.collectMany { fragment ->
-            params.missed_cleavages.collectMany { missed ->
-                params.min_peptide_len.collectMany { min_len ->
-                    params.max_peptide_len.collect { max_len ->
+    parameter_grid = precursor_tol.collectMany { precursor ->
+        fragment_tol.collectMany { fragment ->
+            missed_cleavages.collectMany { missed ->
+                min_peptide_len.collectMany { min_len ->
+                    max_peptide_len.collect { max_len ->
 
                         def label = "p${precursor}_f${fragment}_c${missed}_n${min_len}_x${max_len}"
 
