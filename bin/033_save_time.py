@@ -93,7 +93,7 @@ def main() -> None:
 
     metrics_df = process(args)
 
-    metrics_df.write_parquet(f"{args.replicate_id}.parquet", compression="zstd")
+    metrics_df.write_parquet(f"{args.software_id}.{args.replicate_id}.parquet", compression="zstd")
 
 
 

@@ -312,7 +312,7 @@ def main() -> None:
 
     psm = process(args)
 
-    output_path = Path(f"{args.replicate_id}.parquet")
+    output_path = Path(f"{args.software_id}.{args.replicate_id}.parquet")
 
     psm.write_parquet(output_path, compression="zstd")
 
