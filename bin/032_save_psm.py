@@ -301,8 +301,8 @@ def main() -> None:
     )
 
 
-    parser.add_argument("replicate_id", help="Replicate identifier")
     parser.add_argument("software_id", help="Software identifier")
+    parser.add_argument("replicate_id", help="Replicate identifier")
     parser.add_argument("results", type=Path, help="Existing results file")
 
     args = parser.parse_args()
