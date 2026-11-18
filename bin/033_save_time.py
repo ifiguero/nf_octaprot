@@ -88,12 +88,12 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if not args.filename.is_file():
-        parser.error(f"Time metrics file does not exist: {args.filename}")
+    if not args.timing.is_file():
+        parser.error(f"Time metrics file does not exist: {args.timing}")
 
     metrics_df = process(args)
 
-    metrics_df.write_parquet(f"{args.id}.parquet", compression="zstd")
+    metrics_df.write_parquet(f"{args.replicate_id}.parquet", compression="zstd")
 
 
 
