@@ -79,7 +79,7 @@ workflow WORKFLOW_SEARCH {
 
     if (params.search_mode == 'wide') {
         // Wide parameter exploration: Single sample, MSFragger only.
-        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets, 1)
+        mzml_dia = LIST_DIA_REPLICATES(replicate_parquets, 3)
             .splitText()
             .map { it.trim() }
             .filter { it }
@@ -87,7 +87,7 @@ workflow WORKFLOW_SEARCH {
                 tuple(replicate_id, file("${params.bronze_dir}/${replicate_id}.mzML.gz"))
             }
 
-        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets, 1)
+        mzml_dda = LIST_DDA_REPLICATES(replicate_parquets, 3)
             .splitText()
             .map { it.trim() }
             .filter { it }
