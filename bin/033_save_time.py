@@ -27,7 +27,7 @@ def parse_time_output(path: Path) -> dict[str, any]:
                 data["system_time_seconds"] = float(line.split(":")[-1].strip())
             elif line.startswith("File system inputs:"):
                 data["io_in"] = int(line.split(":")[-1].strip())
-            elif line.startswith("File system output:"):
+            elif line.startswith("File system outputs:"):
                 data["io_out"] = float(line.split(":")[-1].strip())
             elif line.startswith("Percent of CPU this job got:"):
                 val = line.split(":")[-1].strip().replace("%", "")
