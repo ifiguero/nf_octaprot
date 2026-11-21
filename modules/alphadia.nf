@@ -36,14 +36,14 @@ process ALPHADIA_PREPARE {
 search:
   target_ms1_tolerance: ${precursor}
   target_ms2_tolerance: ${fragment}
-  min_peptide_length: ${min_len}
-  max_peptide_length: ${max_len}
 
 library_prediction:
   enabled: true
   enzyme: trypsin
   missed_cleavages: ${missed}
-
+  precursor_len:
+      - ${min_len}
+      - ${max_len}
 fdr:
   fdr: 0.01
 
