@@ -136,7 +136,7 @@ workflow MSFRAGGER_SEARCH {
         mzml_ch
 
     main:
-        mzml_ch.view { "mzML input: $it" }
+//        mzml_ch.view { "mzML input: $it" }
         prepared_ch = MSFRAGGER_PREPARE(config_ch)
 
         job_queue = prepared_ch.combine(mzml_ch)
