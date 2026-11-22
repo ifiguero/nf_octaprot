@@ -45,7 +45,14 @@ COPY --from=repo /src/requirements requirements
 COPY --from=repo /src/alphadia alphadia
 COPY --from=repo /src/MANIFEST.in MANIFEST.in
 
-RUN pip install --no-cache-dir ".[stable]"
+RUN pip install --upgrade pip && \
+    pip install --pre --no-cache-dir ".[stable]"
+
+# Install AlphaPeptDeep pretrained models at build time
+RUN mkdir -p /root/peptdeep/pretrained_models && \
+    python -c "import urllib.request; urllib.request.urlretrieve('https://github.com/MannLabs/alphapeptdeep/releases/download/pre-trained-models/pretrained_models_v3.zip', '/tmp/pretrained_models_v3.zip')" && \
+    peptdeep install-models --model-file /tmp/pretrained_models_v3.zip && \
+    rm /tmp/pretrained_models_v3.zip
 
 COPY --from=tool-provider /usr/bin/time /usr/bin/time
 
