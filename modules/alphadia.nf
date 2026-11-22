@@ -91,7 +91,7 @@ process ALPHADIA_PSM {
           val(replicate_id),
           val(fasta.baseName),
           val(grid_label),
-          path("results.tsv"),
+          path("results.{tsv,parquet}"),
           path("runtime.tsv")
 
     script:
@@ -123,7 +123,14 @@ process ALPHADIA_PSM {
     rm -f "${mzml_gz.baseName}"
 
     echo "[nf_alphadia] Rename Output:"
-    mv report/precursors.tsv "results.tsv"
+    if [ -f report/precursors.tsv ]; then
+      mv report/precursors.tsv "results.tsv"
+    elif [ -f report/precursors.parquet ]; then
+      mv report/precursors.parquet "results.parquet"
+    else
+      echo "ERROR: No precursors.tsv or precursors.parquet found in report/" >&2
+      exit 1
+    fi
 
     echo "[nf_alphadia] Finish"
     """
