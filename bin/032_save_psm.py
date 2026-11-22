@@ -159,7 +159,7 @@ def parse_diann(df: pl.DataFrame, replicate_id: str) -> pl.DataFrame:
 
 
 def read_input(path: Path, software: str) -> pl.DataFrame:
-    if path.suffix.lower() != ".parquet":
+    if path.suffix.lower() == ".parquet":
         if software not in ["diann", "alphadia"]:
             raise ValueError("Parquet output valid for DIA-NN or AlphaDIA only.")
 
