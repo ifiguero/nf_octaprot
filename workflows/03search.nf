@@ -2,7 +2,7 @@ include { LIST_DDA_REPLICATES; LIST_DIA_REPLICATES } from '../modules/parquet.nf
 include { SAVE_RUNTIME; SAVE_PSM } from '../modules/parquet-psm.nf'
 include { MSFRAGGER_PREPARE; MSFRAGGER_PSM } from '../modules/msfragger.nf'
 include { DIANN_PREPARE; DIANN_PSM } from '../modules/diann.nf'
-include { ALPHADIA_PREPARE; ALPHADIA_PSM } from '../modules/alphadia.nf'
+include { ALPHADIA_PREPARE; ALPHADIA_PSM, DIANN_PSM_DDA } from '../modules/alphadia.nf'
 include { SAGE_PREPARE; SAGE_PSM } from '../modules/sage.nf'
 
 
@@ -124,7 +124,8 @@ workflow WORKFLOW_SEARCH {
 
 
         MSFRAGGER_SEARCH(config_ch, mzml_combined)
-        DIANN_SEARCH(config_ch, mzml_combined)
+        DIANN_SEARCH(config_ch, mzml_dia)
+        DIANN_SEARCH_DDA(config_ch, mzml_dda)
         SAGE_SEARCH(config_ch, mzml_combined)
         ALPHADIA_SEARCH(config_ch, mzml_dia)
     }
@@ -160,6 +161,24 @@ workflow DIANN_SEARCH {
         job_queue = prepared_ch.combine(mzml_ch)
 
         psm_results = DIANN_PSM(job_queue)
+
+        SAVE_PSM(psm_results)
+
+        SAVE_RUNTIME(psm_results)
+}
+
+workflow DIANN_SEARCH_DDA {
+
+    take:
+        config_ch
+        mzml_ch
+
+    main:
+        prepared_ch = DIANN_PREPARE(config_ch)
+
+        job_queue = prepared_ch.combine(mzml_ch)
+
+        psm_results = DIANN_PSM_DDA(job_queue)
 
         SAVE_PSM(psm_results)
 
