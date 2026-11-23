@@ -2,7 +2,7 @@ include { LIST_DDA_REPLICATES; LIST_DIA_REPLICATES } from '../modules/parquet.nf
 include { SAVE_RUNTIME; SAVE_PSM } from '../modules/parquet-psm.nf'
 include { MSFRAGGER_PREPARE; MSFRAGGER_PSM } from '../modules/msfragger.nf'
 include { DIANN_PREPARE; DIANN_PSM } from '../modules/diann.nf'
-include { ALPHADIA_PREPARE; ALPHADIA_PSM, DIANN_PSM_DDA } from '../modules/alphadia.nf'
+include { ALPHADIA_PREPARE; ALPHADIA_PSM; DIANN_PSM_DDA } from '../modules/alphadia.nf'
 include { SAGE_PREPARE; SAGE_PSM } from '../modules/sage.nf'
 
 
